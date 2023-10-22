@@ -1,0 +1,21 @@
+package com.example.demo.repository;
+
+import com.example.demo.entity.Post;
+import com.example.demo.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface UserRepository extends JpaRepository<User,Long> {
+    @Query("SELECT p FROM User u JOIN u.savedPosts p WHERE u.id = :userId")
+    Page<Post> findSavedPostsById(Long userId, PageRequest p);
+    Page<User> findAll(Pageable p);
+    @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM User u JOIN u.savedPosts p WHERE u.id = :userId AND p.id = :postId")
+    boolean isPostSavedByUser(@Param("userId") Long userId, @Param("postId") Long postId);
+    User findByUsername(String username);
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
+}
