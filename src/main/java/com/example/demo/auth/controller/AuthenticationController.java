@@ -6,9 +6,11 @@ import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.auth.service.AuthenticationService;
 import com.example.demo.dto.response.UserResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,23 +24,25 @@ public class AuthenticationController {
 
     @PostMapping(value = "/register",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageDto> registerUser(
-            @RequestPart("user") UserRegisterRequestDto userRegisterRequestDto,
+            @RequestPart("user") @Valid UserRegisterRequestDto userRegisterRequestDto,
             @RequestPart(value = "image",required = false)MultipartFile file
             ) throws IOException {
         return ResponseEntity.ok(authenticationService.register(userRegisterRequestDto,file));
     }
 
     @PostMapping(value = "/register-mod",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<MessageDto> registerMod(
-            @RequestPart("user") UserRegisterRequestDto userRegisterRequestDto,
+            @RequestPart("user") @Valid UserRegisterRequestDto userRegisterRequestDto,
             @RequestPart(value = "image",required = false)MultipartFile file
     ) throws IOException {
         return ResponseEntity.ok(authenticationService.registerMod(userRegisterRequestDto,file));
     }
 
     @PostMapping(value = "/register-admin",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<MessageDto> registerAdmin(
-            @RequestPart("user") UserRegisterRequestDto userRegisterRequestDto,
+            @RequestPart("user") @Valid UserRegisterRequestDto userRegisterRequestDto,
             @RequestPart(value = "image",required = false)MultipartFile file
             ) throws IOException {
         return ResponseEntity.ok(authenticationService.registerAdmin(userRegisterRequestDto,file));
@@ -46,7 +50,7 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<UserResponseDto>login(
-            @RequestBody UserLoginRequestDto userLoginRequestDto
+            @RequestBody  @Valid UserLoginRequestDto userLoginRequestDto
             ){
         return authenticationService.login(userLoginRequestDto);
     }
