@@ -20,7 +20,7 @@ public class FinalApplication {
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
 						.allowCredentials(true)
-						.allowedOriginPatterns("http://localhost:5000")
+						.allowedOriginPatterns("http://localhost:5000","https://elegant-naiad-4aa2f3.netlify.app")
 						.allowedMethods("*")
 						.allowedHeaders("*");
 			}
