@@ -11,7 +11,7 @@ services:
 #      - DATABASE_URL=jdbc:postgresql://dpg-ckhdukcldqrs739lcov0-a/database_2olf
 #      - DATABASE_USERNAME=database_2olf_user
 #      - DATABASE_PASSWORD=K8QzfH0KE6XmJX1bsHnCPj4Ex4Yy1JGs
-      - DATABASE_URL=jdbc:postgresql://postgres_db:5432/test
+      - DATABASE_URL=jdbc:postgresql://postgres_db:5432/test_jwt_new
       - DATABASE_USERNAME=postgres
       - DATABASE_PASSWORD=reze
     depends_on:
@@ -26,7 +26,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: reze
-      POSTGRES_DB: test
+      POSTGRES_DB: test_jwt_new
     healthcheck:
       test: ["CMD-SHELL","pg_isready -U postgres"]
       interval: 10s
