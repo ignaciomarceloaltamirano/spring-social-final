@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.social</groupId>
-	<artifactId>final</artifactId>
+	<artifactId>social</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>final</name>
 	<description>Social Final</description>
@@ -109,7 +109,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
-		<finalName>social_final</finalName>
+<!--		<finalName>social_final</finalName>-->
 	</build>
 
 </project>
