@@ -4,7 +4,6 @@ import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.dto.request.CommentRequestDto;
 import com.example.demo.dto.request.UpdateCommentRequestDto;
 import com.example.demo.dto.response.CommentResponseDto;
-import com.example.demo.dto.response.PageDto;
 import com.example.demo.entity.Comment;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
@@ -16,8 +15,7 @@ import com.example.demo.service.IUtilService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -32,24 +30,23 @@ public class CommentServiceImpl implements ICommentService {
     private final CommentRepository commentRepository;
     private final ModelMapper modelMapper;
 
-    public PageDto<CommentResponseDto> getPostComments(Long postId, int page) {
+    public List<CommentResponseDto> getPostComments(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
-        Sort s = Sort.by("id").ascending();
+        Sort s = Sort.by("id").descending();
 
-        Page<Comment> pageRequest = commentRepository.findAllByPost(post, PageRequest.of(page - 1, 2, s));
+        List<Comment> comments = commentRepository.findAllByPost(post);
 
-        int totalPages = pageRequest.getTotalPages();
-        List<CommentResponseDto> content = pageRequest
-                .getContent().stream().map(comment -> modelMapper.map(comment, CommentResponseDto.class)).toList();
+        return  comments.stream().map(comment -> modelMapper.map(comment, CommentResponseDto.class)).toList();
 
-        return new PageDto<>(content, totalPages);
     }
 
     public CommentResponseDto createComment(Long postId, CommentRequestDto commentRequestDto) {
         User user = utilService.getCurrentUser();
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+
+        System.out.println(commentRequestDto);
 
         Comment comment = Comment.builder()
                 .author(user)

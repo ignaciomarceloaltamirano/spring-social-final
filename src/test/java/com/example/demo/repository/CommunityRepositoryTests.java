@@ -57,18 +57,6 @@ public class CommunityRepositoryTests {
     }
 
     @Test
-    void testFindAllByNameContaining() {
-        PageRequest pageRequest = PageRequest.of(0, 2, Sort.by("id").ascending());
-        Page<Community> communitiesPage = communityRepository.findAllByNameContaining("1", pageRequest);
-
-        assertThat(communitiesPage).isNotNull();
-        assertThat(communitiesPage.getContent()).isNotNull();
-        assertThat(communitiesPage.getContent().size()).isEqualTo(1);
-        assertThat(communitiesPage.getContent().get(0).getName()).isEqualTo("Community 1");
-        assertThat(communitiesPage.getTotalPages()).isEqualTo(1);
-    }
-
-    @Test
     void testFindById_Success() {
         Community retrievedCommunity = communityRepository.findById(community1.getId()).get();
 

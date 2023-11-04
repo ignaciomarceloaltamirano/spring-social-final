@@ -14,11 +14,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/tags")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
 public class TagController {
     private final ITagService tagService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<Tag>> getTags() {
         return ResponseEntity.ok(tagService.getTags());
     }

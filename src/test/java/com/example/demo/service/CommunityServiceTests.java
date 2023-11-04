@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,15 +69,13 @@ public class CommunityServiceTests {
     }
 
     @Test
-    void testGetPostComments() {
-        Page<Community> pageRequest = new PageImpl<>(Collections.singletonList(community));
-        given(communityRepository.findAll(any(PageRequest.class))).willReturn(pageRequest);
+    void testGetAllCommunities() {
+        given(communityRepository.findAll()).willReturn(List.of(new Community()));
 
-        PageDto<CommunityResponseDto> result = communityService.getAllCommunities(1);
+        List<CommunityResponseDto> result = communityService.getAllCommunities();
 
         assertNotNull(result);
-        verify(communityRepository, times(1)).findAll(any(PageRequest.class));
-        assertThat(result).isInstanceOf(PageDto.class);
+        verify(communityRepository, times(1)).findAll();
     }
 
     @Test
@@ -140,7 +139,7 @@ public class CommunityServiceTests {
         MessageDto result = communityService.deleteCommunity(1L);
 
         assertNotNull(result);
-        assertEquals("Community deleted", result.getMessage());
+        assertEquals("Community deleted.", result.getMessage());
         verify(communityRepository, times(1)).delete(community);
     }
 

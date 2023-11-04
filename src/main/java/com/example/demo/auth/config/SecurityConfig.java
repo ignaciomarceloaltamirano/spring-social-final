@@ -60,40 +60,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public WebMvcConfigurer corsConfig() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5000")
-                        .allowedHeaders(
-                                HttpHeaders.AUTHORIZATION,
-                                HttpHeaders.ACCEPT,
-                                HttpHeaders.SET_COOKIE,
-                                HttpHeaders.CONTENT_TYPE)
-                        .allowedMethods(
-                                HttpMethod.HEAD.name(),
-                                HttpMethod.GET.name(),
-                                HttpMethod.POST.name(),
-                                HttpMethod.PUT.name(),
-                                HttpMethod.PATCH.name(),
-                                HttpMethod.DELETE.name(),
-                                HttpMethod.OPTIONS.name());
-            }
-        };
-    }
-
-    @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.
                 csrf(AbstractHttpConfigurer::disable)
-//                .cors(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPointJwt))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error", "/auth/**").permitAll()
-                        .requestMatchers("/comments/**", "/commentvotes/**", "/communities/**", "/posts/**",
-                                "/search/**", "/subscriptions/**", "/tags/**", "users/**", "/votes/**").authenticated()
+                        .requestMatchers("/comments/**", "/commentvotes/**","/communities/**", "/posts/**",
+                                "/search/**", "/subscriptions/**", "/tags/**", "users/**", "/votes/**")
+                        .permitAll().anyRequest().authenticated()
+
                 );
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);

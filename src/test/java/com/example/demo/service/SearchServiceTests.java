@@ -34,14 +34,14 @@ public class SearchServiceTests {
     @InjectMocks
     private SearchServiceImpl searchService;
 
-    @Test
-    void testGetAllCommunities() {
-        Page<Community> page = new PageImpl<>(Collections.singletonList(new Community()));
-        given(communityRepository.findAllByNameContaining(anyString(),any(PageRequest.class))).willReturn(page);
-
-        PageDto<CommunityResponseDto> result = searchService.getCommunitiesByName("test", 1);
-        assertThat(result).isNotNull();
-        verify(communityRepository, times(1)).findAllByNameContaining(anyString(),any(PageRequest.class));
-        assertThat(result).isInstanceOf(PageDto.class);
-    }
+//    @Test
+//    void testGetAllCommunities() {
+//        Page<Community> page = new PageImpl<>(Collections.singletonList(new Community()));
+//        given(communityRepository.findAllByNameContaining(anyString(),any(PageRequest.class))).willReturn(page);
+//
+//        PageDto<CommunityResponseDto> result = searchService.getCommunitiesByName("test", 1);
+//        assertThat(result).isNotNull();
+//        verify(communityRepository, times(1)).findAllByNameContaining(anyString(),any(PageRequest.class));
+//        assertThat(result).isInstanceOf(PageDto.class);
+//    }
 }

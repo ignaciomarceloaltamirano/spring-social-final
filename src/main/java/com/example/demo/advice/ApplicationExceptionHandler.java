@@ -1,9 +1,6 @@
 package com.example.demo.advice;
 
-import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.exception.TokenRefreshException;
-import com.example.demo.exception.UnauthorizedUserException;
-import com.example.demo.exception.UserAlreadyExistsException;
+import com.example.demo.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -37,6 +34,14 @@ public class ApplicationExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(UserAlreadyExistsException.class)
     public Map<String,String> handleUserAlreadyExistsException(UserAlreadyExistsException ex,WebRequest request){
+        Map<String,String> errorMap=new HashMap<>();
+        errorMap.put("message",ex.getMessage());
+        return errorMap;
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(ResourceAlreadyExists.class)
+    public Map<String,String> handleResourceAlreadyExists(ResourceAlreadyExists ex,WebRequest request){
         Map<String,String> errorMap=new HashMap<>();
         errorMap.put("message",ex.getMessage());
         return errorMap;

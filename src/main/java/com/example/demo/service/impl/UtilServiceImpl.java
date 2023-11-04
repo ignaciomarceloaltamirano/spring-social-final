@@ -14,6 +14,6 @@ public class UtilServiceImpl implements IUtilService {
 
     public User getCurrentUser() {
         String username= SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByUsername(username);
+        return userRepository.findByUsername(username).get();
     }
 }

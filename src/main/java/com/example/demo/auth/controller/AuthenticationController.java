@@ -1,11 +1,14 @@
 package com.example.demo.auth.controller;
 
+import com.example.demo.auth.dto.request.RefreshTokenRequestDto;
 import com.example.demo.auth.dto.request.UserLoginRequestDto;
 import com.example.demo.auth.dto.request.UserRegisterRequestDto;
+import com.example.demo.auth.dto.response.LoginResponseDto;
 import com.example.demo.auth.dto.response.MessageDto;
+import com.example.demo.auth.dto.response.TokenRefreshResponseDto;
 import com.example.demo.auth.service.AuthenticationService;
-import com.example.demo.dto.response.UserResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -22,46 +25,46 @@ import java.io.IOException;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
-    @PostMapping(value = "/register",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageDto> registerUser(
             @RequestPart("user") @Valid UserRegisterRequestDto userRegisterRequestDto,
-            @RequestPart(value = "image",required = false)MultipartFile file
-            ) throws IOException {
-        return ResponseEntity.ok(authenticationService.register(userRegisterRequestDto,file));
+            @RequestPart(value = "image", required = false) MultipartFile file
+    ) throws IOException {
+        return ResponseEntity.ok(authenticationService.register(userRegisterRequestDto, file));
     }
 
-    @PostMapping(value = "/register-mod",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/register-mod", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<MessageDto> registerMod(
             @RequestPart("user") @Valid UserRegisterRequestDto userRegisterRequestDto,
-            @RequestPart(value = "image",required = false)MultipartFile file
+            @RequestPart(value = "image", required = false) MultipartFile file
     ) throws IOException {
-        return ResponseEntity.ok(authenticationService.registerMod(userRegisterRequestDto,file));
+        return ResponseEntity.ok(authenticationService.registerMod(userRegisterRequestDto, file));
     }
 
-    @PostMapping(value = "/register-admin",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/register-admin", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<MessageDto> registerAdmin(
             @RequestPart("user") @Valid UserRegisterRequestDto userRegisterRequestDto,
-            @RequestPart(value = "image",required = false)MultipartFile file
-            ) throws IOException {
-        return ResponseEntity.ok(authenticationService.registerAdmin(userRegisterRequestDto,file));
+            @RequestPart(value = "image", required = false) MultipartFile file
+    ) throws IOException {
+        return ResponseEntity.ok(authenticationService.registerAdmin(userRegisterRequestDto, file));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponseDto>login(
-            @RequestBody  @Valid UserLoginRequestDto userLoginRequestDto
-            ){
-        return authenticationService.login(userLoginRequestDto);
+    public ResponseEntity<LoginResponseDto> login(
+            @RequestBody @Valid UserLoginRequestDto userLoginRequestDto
+    ) {
+        return ResponseEntity.ok(authenticationService.login(userLoginRequestDto));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<MessageDto>logout(    ){
+    public ResponseEntity<MessageDto> logout() {
         return authenticationService.logout();
     }
 
     @PostMapping("/refreshtoken")
-    public ResponseEntity<MessageDto>refreshToken(HttpServletRequest request){
+    public ResponseEntity<TokenRefreshResponseDto> refreshToken(@Valid @RequestBody RefreshTokenRequestDto request) throws IOException {
         return authenticationService.refreshToken(request);
     }
 }

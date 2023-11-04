@@ -1,6 +1,7 @@
 package com.example.demo.auth.service;
 
 import com.example.demo.entity.RefreshToken;
+import com.example.demo.entity.User;
 import com.example.demo.exception.TokenRefreshException;
 import com.example.demo.repository.RefreshTokenRepository;
 import com.example.demo.repository.UserRepository;
@@ -27,26 +28,27 @@ public class RefreshTokenService {
     }
 
     public RefreshToken createRefreshToken(Long userId) {
-        RefreshToken refreshToken = RefreshToken.builder()
-                .token(UUID.randomUUID().toString())
-                .user(userRepository.findById(userId).get())
-                .expiryDate(Instant.now().plusMillis(jwtRefreshExpirationMs))
-                .build();
-        return refreshTokenRepository.save(refreshToken);
-    }
+        RefreshToken refreshToken = new RefreshToken();
 
-    public RefreshToken verifyExpiration(RefreshToken refreshToken) {
-        if (refreshToken.getExpiryDate().compareTo(Instant.now()) < 0) {
-            refreshTokenRepository.delete(refreshToken);
-            throw new TokenRefreshException(
-                    refreshToken.getToken(),
-                    "Refresh token was expired. Please make a new sign in request");
-        }
+        refreshToken.setUser(userRepository.findById(userId).get());
+        refreshToken.setExpiryDate(Instant.now().plusMillis(jwtRefreshExpirationMs));
+        refreshToken.setToken(UUID.randomUUID().toString());
+
+        refreshToken = refreshTokenRepository.save(refreshToken);
         return refreshToken;
     }
 
+    public RefreshToken verifyExpiration(RefreshToken token) {
+        if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
+            refreshTokenRepository.delete(token);
+            throw new TokenRefreshException(token.getToken(), "Refresh token was expired. Please make a new signin request");
+        }
+
+        return token;
+    }
+
     @Transactional
-    public void deleteByUserId(Long userId) {
-        refreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
+    public int deleteByUser(Long userId) {
+        return refreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
     }
 }

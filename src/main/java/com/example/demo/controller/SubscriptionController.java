@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.auth.dto.response.MessageDto;
+import com.example.demo.dto.response.SubscriptionResponseDto;
 import com.example.demo.service.ISubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/subscriptions")
 @RequiredArgsConstructor
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
 public class SubscriptionController {
     private final ISubscriptionService subscriptionService;
 
-
     @GetMapping("/{communityId}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Boolean> getSubscription(
             @PathVariable("communityId") Long communityId
     ) {
@@ -23,7 +23,6 @@ public class SubscriptionController {
     }
 
     @GetMapping("/{communityId}/count")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Long> getSubscriptionsCountByCommunity(
             @PathVariable("communityId") Long communityId
     ) {
@@ -31,15 +30,13 @@ public class SubscriptionController {
     }
 
     @PostMapping("/subscribe/{communityId}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Object> createSubscription(
+    public ResponseEntity<SubscriptionResponseDto> createSubscription(
             @PathVariable("communityId") Long communityId
     ) {
         return ResponseEntity.ok(subscriptionService.createSubscription(communityId));
     }
 
     @DeleteMapping("/unsubscribe/{communityId}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<MessageDto> deleteSubscription(
             @PathVariable("communityId") Long communityId
     ) {

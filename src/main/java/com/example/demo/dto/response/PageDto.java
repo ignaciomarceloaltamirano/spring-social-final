@@ -12,8 +12,6 @@ import java.util.List;
 public class PageDto<T> {
     List<T> content;
     private int totalPages;
-
-    public <T> PageDto(List<T> list) {
-    }
+    private int currentPage;
 }
 

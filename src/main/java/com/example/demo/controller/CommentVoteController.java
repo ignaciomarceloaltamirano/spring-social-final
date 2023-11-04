@@ -19,7 +19,7 @@ public class CommentVoteController {
 
     @GetMapping("/user/{commentId}")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<CommentVoteResponseDto> getCurrentVote(
+    public ResponseEntity<Object> getCurrentVote(
             @PathVariable("commentId")Long commentId
     ){
         return ResponseEntity.ok(commentVoteService.getCurrentVote(commentId));

@@ -4,6 +4,7 @@ import com.example.demo.auth.service.JwtService;
 import com.example.demo.auth.service.UserDetailsServiceImpl;
 import com.example.demo.dto.response.CommunityResponseDto;
 import com.example.demo.dto.response.PageDto;
+import com.example.demo.dto.response.PostResponseDto;
 import com.example.demo.repository.CommunityRepository;
 import com.example.demo.service.IUtilService;
 import com.example.demo.service.impl.SearchServiceImpl;
@@ -21,7 +22,9 @@ import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.Collections;
+import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,13 +51,13 @@ public class SearchControllerTests {
     private UserDetailsServiceImpl userDetailsService;
 
     @Test
-    public void testGetCommunitiesByName() throws Exception {
+    public void testPostsByTitleOrAuthorContaining() throws Exception {
         CommunityResponseDto communityResponseDto = CommunityResponseDto.builder()
                 .name("test")
                 .build();
 
-        given(searchService.getCommunitiesByName("test", 1))
-                .willReturn(new PageDto<>(Collections.singletonList(communityResponseDto), 1));
+        given(searchService.getPostsByTitleOrAuthor("test", 1))
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), anyInt(),anyInt()));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/search/page/{page}", 1)
@@ -64,8 +67,8 @@ public class SearchControllerTests {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
                 .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andExpect(jsonPath("$.content[0].name").value("test"))
                 .andReturn();
     }
 }

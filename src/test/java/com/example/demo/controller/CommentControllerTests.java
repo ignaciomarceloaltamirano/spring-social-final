@@ -9,6 +9,8 @@ import com.example.demo.dto.request.UpdateCommentRequestDto;
 import com.example.demo.dto.response.CommentResponseDto;
 import com.example.demo.dto.response.PageDto;
 
+import com.example.demo.entity.Comment;
+import com.example.demo.entity.Tag;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.PostRepository;
@@ -29,6 +31,7 @@ import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -57,17 +60,14 @@ public class CommentControllerTests {
 
     @Test
     public void testGetPostComments() throws Exception {
-        given(commentService.getPostComments(anyLong(), anyInt()))
-                .willReturn(new PageDto<>(Collections.singletonList(any(CommentResponseDto.class)), anyInt()));
+        given(commentService.getPostComments(anyLong())).willReturn(Collections.singletonList(new CommentResponseDto()));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/comments/post/{postId}/page/{page}", 1L, 1)
+                .get("/comments/post/{postId}", 1L)
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
                 .andReturn();
     }
 

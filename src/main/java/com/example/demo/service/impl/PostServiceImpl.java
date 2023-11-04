@@ -3,6 +3,7 @@ package com.example.demo.service.impl;
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.dto.request.PostRequestDto;
 import com.example.demo.dto.response.PageDto;
+import com.example.demo.dto.response.PageDto;
 import com.example.demo.dto.response.PostResponseDto;
 import com.example.demo.entity.Community;
 import com.example.demo.entity.Post;
@@ -43,98 +44,109 @@ public class PostServiceImpl implements IPostService {
     }
 
     public PageDto<PostResponseDto> getPosts(int page) {
-        Sort s = Sort.by("id").ascending();
-        Page<Post> pageRequest = postRepository.findAll(PageRequest.of(page - 1, 2, s));
+        Sort s = Sort.by("id").descending();
+        Page<Post> pageRequest = postRepository.findAll(PageRequest.of(page - 1, 6, s));
         int totalPages = pageRequest.getTotalPages();
+        int currentPage = pageRequest.getNumber() + 1;
+
         List<PostResponseDto> content = pageRequest.getContent()
                 .stream().map(
                         post -> modelMapper.map(post, PostResponseDto.class)).toList();
-        return new PageDto<>(content, totalPages);
+        return new PageDto<>(content, totalPages,currentPage);
     }
 
     public PageDto<PostResponseDto> getPostsByTag(String tagName, int page) {
-        Sort s = Sort.by("id").ascending();
+        Sort s = Sort.by("id").descending();
 
-        Page<Post>pageRequest=postRepository.findAllByTagsName(tagName, PageRequest.of(page - 1, 2, s));
-
+        Page<Post>pageRequest=postRepository.findAllByTagsName(tagName, PageRequest.of(page - 1, 6, s));
         int totalPages = pageRequest.getTotalPages();
+        int currentPage = pageRequest.getNumber() + 1;
+
         List<PostResponseDto> content = pageRequest
                 .getContent().stream().map(
                         post -> modelMapper.map(post, PostResponseDto.class)).toList();
-        return new PageDto<>(content, totalPages);
+        return new PageDto<>(content, totalPages,currentPage);
     }
 
     public PageDto<PostResponseDto> getUserUpVotedPosts(int page) {
         User user = utilService.getCurrentUser();
-        Sort s = Sort.by("id").ascending();
-        Page<Post> pageRequest=voteRepository.findUserUpVotedPosts(user.getId(), PageRequest.of(page - 1, 2, s));
-
+        Sort s = Sort.by("id").descending();
+        Page<Post> pageRequest=voteRepository.findUserUpVotedPosts(user.getId(), PageRequest.of(page - 1, 6, s));
         int totalPages = pageRequest.getTotalPages();
+        int currentPage = pageRequest.getNumber() + 1;
+
         List<PostResponseDto> content = pageRequest
                 .getContent().stream().map(
                         post -> modelMapper.map(post, PostResponseDto.class)).toList();
-        return new PageDto<>(content, totalPages);
+        return new PageDto<>(content, totalPages,currentPage);
     }
     public PageDto<PostResponseDto> getUserDownVotedPosts(int page) {
         User user = utilService.getCurrentUser();
-        Sort s = Sort.by("id").ascending();
+        Sort s = Sort.by("id").descending();
 
-        Page<Post> pageRequest=voteRepository.findUserDownVotedPosts(user.getId(), PageRequest.of(page - 1, 2, s));
+        Page<Post> pageRequest=voteRepository.findUserDownVotedPosts(user.getId(), PageRequest.of(page - 1, 6, s));
         int totalPages = pageRequest.getTotalPages();
+        int currentPage = pageRequest.getNumber() + 1;
+
         List<PostResponseDto> content = pageRequest
                 .getContent().stream().map(
                         post -> modelMapper.map(post, PostResponseDto.class)).toList();
-        return new PageDto<>(content, totalPages);
+        return new PageDto<>(content, totalPages,currentPage);
     }
 
     public PageDto<PostResponseDto> getUserSubscribedCommunitiesPosts(int page) {
         User user = utilService.getCurrentUser();
-        Sort s = Sort.by("id").ascending();
+        Sort s = Sort.by("id").descending();
 
-        Page<Post>pageRequest=postRepository.findPostsInUserSubscribedCommunities(user.getId(), PageRequest.of(page - 1, 2, s));
-
+        Page<Post>pageRequest=postRepository.findPostsInUserSubscribedCommunities(user.getId(), PageRequest.of(page - 1, 6, s));
         int totalPages = pageRequest.getTotalPages();
+        int currentPage = pageRequest.getNumber() + 1;
+
         List<PostResponseDto> content = pageRequest
                 .getContent().stream().map(
                         post -> modelMapper.map(post, PostResponseDto.class)).toList();
-        return new PageDto<>(content, totalPages);
+        return new PageDto<>(content, totalPages,currentPage);
     }
 
 
     public PageDto<PostResponseDto> getPostsByCommunity(Long communityId, int page) {
-        Sort s = Sort.by("id").ascending();
+        Sort s = Sort.by("id").descending();
 
-        Page<Post>pageRequest=postRepository.findAllByCommunityId(communityId, PageRequest.of(page - 1, 2, s));
+        Page<Post>pageRequest=postRepository.findAllByCommunityId(communityId, PageRequest.of(page - 1, 6, s));
         int totalPages = pageRequest.getTotalPages();
+        int currentPage = pageRequest.getNumber() + 1;
+
         List<PostResponseDto> content = pageRequest
                 .getContent().stream().map(
                         post -> modelMapper.map(post, PostResponseDto.class)).toList();
-        return new PageDto<>(content, totalPages);
+        return new PageDto<>(content, totalPages,currentPage);
     }
 
     public PageDto<PostResponseDto> getUserPosts(Long userId, int page) {
-        Sort s = Sort.by("id").ascending();
+        Sort s = Sort.by("id").descending();
 
-        Page<Post> pageRequest=postRepository.findAllByAuthorId(userId, PageRequest.of(page - 1, 2, s));
-
+        Page<Post> pageRequest=postRepository.findAllByAuthorId(userId, PageRequest.of(page - 1, 6, s));
         int totalPages = pageRequest.getTotalPages();
+        int currentPage = pageRequest.getNumber() + 1;
+
         List<PostResponseDto> content = pageRequest
                 .getContent().stream().map(
                         post -> modelMapper.map(post, PostResponseDto.class)).toList();
-        return new PageDto<>(content, totalPages);
+        return new PageDto<>(content, totalPages,currentPage);
     }
 
     public PageDto<PostResponseDto> getUserSavedPosts(int page) {
-        Sort s = Sort.by("id").ascending();
+        Sort s = Sort.by("id").descending();
         User user = utilService.getCurrentUser();
 
-        Page<Post> pageRequest=userRepository.findSavedPostsById(user.getId(), PageRequest.of(page - 1, 2, s));
-
+        Page<Post> pageRequest=userRepository.findSavedPostsById(user.getId(), PageRequest.of(page - 1, 6, s));
         int totalPages = pageRequest.getTotalPages();
+        int currentPage = pageRequest.getNumber() + 1;
+
         List<PostResponseDto> content = pageRequest
                 .getContent().stream().map(
                         post -> modelMapper.map(post, PostResponseDto.class)).toList();
-        return new PageDto<>(content, totalPages);
+        return new PageDto<>(content, totalPages,currentPage);
     }
 
     public boolean isPostSaved(Long postId) {
@@ -145,21 +157,21 @@ public class PostServiceImpl implements IPostService {
     public MessageDto savePost(Long postId) {
         User user = utilService.getCurrentUser();
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found."));
 
         user.savePost(post);
         userRepository.save(user);
-        return new MessageDto("Post saved");
+        return new MessageDto("Post saved.");
     }
 
     public MessageDto unSavePost(Long postId) {
         User user = utilService.getCurrentUser();
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found."));
 
         user.unSavePost(post);
         userRepository.save(user);
-        return new MessageDto("Post unsaved");
+        return new MessageDto("Post unsaved.");
     }
 
     public PostResponseDto createPost(PostRequestDto postRequestDto, Long communityId, MultipartFile file) throws IOException {
@@ -180,10 +192,12 @@ public class PostServiceImpl implements IPostService {
                 if (existingTag.isPresent()) {
                     tags.add(existingTag.get());
                 } else {
-                    Tag newTag = Tag.builder()
-                            .name(tagName)
-                            .build();
-                    newTags.add(newTag);
+                    if(!tagName.isEmpty()){
+                        Tag newTag = Tag.builder()
+                                .name(tagName)
+                                .build();
+                        newTags.add(newTag);
+                    }
                 }
             }
 

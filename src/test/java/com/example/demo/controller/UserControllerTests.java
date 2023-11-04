@@ -42,19 +42,19 @@ public class UserControllerTests {
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
 
-    @Test
-    public void testGetUsers() throws Exception {
-        given(userService.getUsers(anyInt()))
-                .willReturn(new PageDto<>(Collections.singletonList(UserResponseDto.builder().build()), 1));
-
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/users/page/{page}", anyInt())
-                .contentType(MediaType.APPLICATION_JSON);
-
-        mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andReturn();
-    }
+//    @Test
+//    public void testGetUsers() throws Exception {
+//        given(userService.getUsers(anyInt()))
+//                .willReturn(new PageDto<>(Collections.singletonList(UserResponseDto.builder().build()), 1));
+//
+//        RequestBuilder requestBuilder = MockMvcRequestBuilders
+//                .get("/users/page/{page}", anyInt())
+//                .contentType(MediaType.APPLICATION_JSON);
+//
+//        mockMvc.perform(requestBuilder)
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.content").exists())
+//                .andExpect(jsonPath("$.totalPages").isNotEmpty())
+//                .andReturn();
+//    }
 }

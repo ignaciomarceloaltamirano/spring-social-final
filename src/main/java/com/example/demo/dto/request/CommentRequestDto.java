@@ -1,5 +1,6 @@
 package com.example.demo.dto.request;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -16,6 +17,8 @@ public class CommentRequestDto {
     @NotEmpty
     @Size(max = 255)
     private String text;
+
+    @Nullable
     @Positive
     private Long replyToId;
 }

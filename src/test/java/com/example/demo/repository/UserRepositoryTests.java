@@ -120,7 +120,7 @@ public class UserRepositoryTests {
 
     @Test
     void testFindByUsername() {
-        User retrievedUser = userRepository.findByUsername(user.getUsername());
+        User retrievedUser = userRepository.findByUsername(user.getUsername()).get();
 
         assertThat(retrievedUser).isNotNull();
         assertThat(retrievedUser.getUsername()).isEqualTo("user1");

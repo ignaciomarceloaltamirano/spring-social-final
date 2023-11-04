@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface IVoteService {
     Object votePost(Long postId, VoteRequestDto voteRequestDto);
-    String getCurrentVote(Long postId);
+    VoteResponseDto getCurrentVote(Long postId);
     List<VoteResponseDto> getPostVotes(Long postId);
 }

@@ -6,6 +6,7 @@ import com.example.demo.dto.response.CommunityResponseDto;
 import com.example.demo.dto.response.PageDto;
 import com.example.demo.entity.Community;
 import com.example.demo.entity.User;
+import com.example.demo.exception.ResourceAlreadyExists;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.exception.UnauthorizedUserException;
 import com.example.demo.repository.CommunityRepository;
@@ -15,8 +16,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,18 +28,23 @@ public class CommunityServiceImpl implements ICommunityService {
     private final IUtilService utilService;
     private final ModelMapper modelMapper;
 
-    public PageDto<CommunityResponseDto> getAllCommunities(int page) {
-        Sort s=Sort.by("id").ascending();
+    public List<CommunityResponseDto> getAllCommunities() {
+        List<Community> communities= communityRepository.findAll();
+              return  communities.stream().map(community -> modelMapper.map(community,CommunityResponseDto.class)).toList();
+    }
 
-        Page<Community> pageRequest= communityRepository.findAll(PageRequest.of(page-1,2,s));
-        int totalPages=pageRequest.getTotalPages();
-        List<CommunityResponseDto> content =pageRequest.getContent().stream()
-                .map(community -> modelMapper.map(community, CommunityResponseDto.class))
-                .toList();
-        return new PageDto<>(content,totalPages);
+    public CommunityResponseDto getCommunity(String name) {
+        Community community= communityRepository.findByName(name)
+                .orElseThrow(()->new ResourceNotFoundException("Community not found."));
+
+        return modelMapper.map(community,CommunityResponseDto.class);
     }
 
     public CommunityResponseDto createCommunity(CommunityRequestDto communityRequestDto) {
+        boolean existsCommunity=communityRepository.existsByName(communityRequestDto.getName());
+        if(existsCommunity){
+            throw new ResourceAlreadyExists("Community with name: " + communityRequestDto.getName() + " already exists.");
+        }
         User user = utilService.getCurrentUser();
         Community community = Community.builder()
                 .creator(user)
@@ -53,10 +57,10 @@ public class CommunityServiceImpl implements ICommunityService {
     public CommunityResponseDto updateCommunity(Long communityId, CommunityRequestDto communityRequestDto) {
         User user = utilService.getCurrentUser();
         Community community=communityRepository.findById(communityId)
-                .orElseThrow(()->new ResourceNotFoundException("Community not found"));
+                .orElseThrow(()->new ResourceNotFoundException("Community not found."));
 
         if(user!= community.getCreator()){
-            throw  new UnauthorizedUserException("Not authorized");
+            throw  new UnauthorizedUserException("Not authorized.");
         }
 
         if(!Objects.equals(community.getName(), communityRequestDto.getName()) &&
@@ -70,12 +74,12 @@ public class CommunityServiceImpl implements ICommunityService {
     public MessageDto deleteCommunity(Long communityId) {
         User user = utilService.getCurrentUser();
         Community community=communityRepository.findById(communityId)
-                .orElseThrow(()->new ResourceNotFoundException("Community not found"));
+                .orElseThrow(()->new ResourceNotFoundException("Community not found."));
         if(user!= community.getCreator()){
-            throw  new UnauthorizedUserException("Not authorized");
+            throw  new UnauthorizedUserException("Not authorized.");
         }
         communityRepository.delete(community);
-        return new MessageDto("Community deleted");
+        return new MessageDto("Community deleted.");
     }
 
 }

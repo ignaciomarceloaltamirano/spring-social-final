@@ -19,7 +19,7 @@ public class VoteController {
 
     @GetMapping("/user/{postId}")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> getCurrentVote(
+    public ResponseEntity<VoteResponseDto> getCurrentVote(
             @PathVariable("postId") Long postId
     ) {
         return ResponseEntity.ok(voteService.getCurrentVote(postId));

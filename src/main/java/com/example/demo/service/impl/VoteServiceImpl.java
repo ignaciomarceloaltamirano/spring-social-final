@@ -28,12 +28,12 @@ public class VoteServiceImpl implements IVoteService {
     private final IUtilService utilService;
     private final ModelMapper modelMapper;
 
-    public String getCurrentVote(Long postId) {
+    public VoteResponseDto getCurrentVote(Long postId) {
         User user = utilService.getCurrentUser();
         Optional<Post> postOptional = postRepository.findById(postId);
         if (postOptional.isPresent()) {
             Vote vote = voteRepository.findByUserIdAndPostId(user.getId(), postOptional.get().getId());
-            return vote != null ? vote.getType().name() : null;
+            return vote != null ? modelMapper.map(vote,VoteResponseDto.class) : null;
         } else {
             throw new ResourceNotFoundException("Post not found");
         }

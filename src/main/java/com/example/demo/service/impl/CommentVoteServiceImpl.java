@@ -3,9 +3,8 @@ package com.example.demo.service.impl;
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.dto.request.CommentVoteRequestDto;
 import com.example.demo.dto.response.CommentVoteResponseDto;
-import com.example.demo.entity.Comment;
-import com.example.demo.entity.CommentVote;
-import com.example.demo.entity.User;
+import com.example.demo.dto.response.VoteResponseDto;
+import com.example.demo.entity.*;
 import com.example.demo.enumeration.EVoteType;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.CommentRepository;
@@ -29,23 +28,30 @@ public class CommentVoteServiceImpl implements ICommentVoteService {
 
     public CommentVoteResponseDto getCurrentVote(Long commentId) {
         User user = utilService.getCurrentUser();
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+        Comment comment = commentRepository.findById(commentId).orElse(null);
 
-        CommentVote commentVote = commentVoteRepository.findByUserIdAndCommentId(user.getId(), comment.getId())
-                .orElse(null);
-
-        if (commentVote == null) {
+        if (comment == null) {
             return null;
+        } else {
+            CommentVote commentVote = commentVoteRepository.findByUserIdAndCommentId(user.getId(), comment.getId())
+                    .orElse(null);
+            if (commentVote == null) {
+                return null;
+            }
+            return modelMapper.map(commentVote, CommentVoteResponseDto.class);
         }
-        return modelMapper.map(commentVote, CommentVoteResponseDto.class);
     }
 
     public List<CommentVoteResponseDto> getCommentVotes(Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+        Comment comment = commentRepository.findById(commentId).orElse(null);
+
+        if(comment==null){
+            return  null;
+        }else{
+
         return commentVoteRepository.findAllByComment(comment).stream().map(
                 commentVote -> modelMapper.map(commentVote, CommentVoteResponseDto.class)).toList();
+        }
     }
 
     @Transactional
@@ -63,7 +69,7 @@ public class CommentVoteServiceImpl implements ICommentVoteService {
                 existingVote.setType(voteType);
                 return modelMapper.map(existingVote, CommentVoteResponseDto.class);
             } else {
-                commentVoteRepository.deleteByUserAndComment(user, comment);
+                commentVoteRepository.deleteByUserIdAndCommentId(user.getId(), commentId);
                 return new MessageDto("Vote deleted");
             }
         }

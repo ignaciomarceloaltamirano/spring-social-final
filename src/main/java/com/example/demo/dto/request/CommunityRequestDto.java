@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CommunityRequestDto {
     @NotEmpty
-    @Size(max = 120)
+    @Size( min = 3,max = 120)
     private String name;
 }
 

@@ -59,7 +59,7 @@ public class PostControllerTests {
     @Test
     public void testGetPosts() throws Exception {
         given(postService.getPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), anyInt()));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1,1));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/posts/page/{page}", 1)
@@ -68,6 +68,7 @@ public class PostControllerTests {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
                 .andExpect(jsonPath("$.totalPages").isNotEmpty())
                 .andReturn();
     }
@@ -102,7 +103,7 @@ public class PostControllerTests {
     @Test
     public void testGetPostsByTag() throws Exception {
         given(postService.getPostsByTag(anyString(), anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()),anyInt(),anyInt()));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/posts/tag/{tagName}/page/{page}", "test", 1)
@@ -111,6 +112,7 @@ public class PostControllerTests {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
                 .andExpect(jsonPath("$.totalPages").isNotEmpty())
                 .andReturn();
     }
@@ -118,15 +120,16 @@ public class PostControllerTests {
     @Test
     public void testGetUserUpVotedPosts() throws Exception {
         given(postService.getUserUpVotedPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1,1));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/posts/upvoted/page/{page}", 1)
+                .get("/posts/upvoted/{userId}/page/{page}", 1,1)
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
                 .andExpect(jsonPath("$.totalPages").isNotEmpty())
                 .andReturn();
     }
@@ -134,15 +137,16 @@ public class PostControllerTests {
     @Test
     public void testGetUserDownVotedPosts() throws Exception {
         given(postService.getUserDownVotedPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1,1));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/posts/downvoted/page/{page}", 1)
+                .get("/posts/downvoted/{userId}/page/{page}", 1,1)
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
                 .andExpect(jsonPath("$.totalPages").isNotEmpty())
                 .andReturn();
     }
@@ -150,7 +154,7 @@ public class PostControllerTests {
     @Test
     public void testGetUserSubscribedCommunitiesPosts() throws Exception {
         given(postService.getUserSubscribedCommunitiesPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1,1));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/posts/subscribed/page/{page}", 1)
@@ -159,6 +163,7 @@ public class PostControllerTests {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
                 .andExpect(jsonPath("$.totalPages").isNotEmpty())
                 .andReturn();
     }
@@ -166,7 +171,7 @@ public class PostControllerTests {
     @Test
     public void testGetPostsByCommunity() throws Exception {
         given(postService.getPostsByCommunity(anyLong(), anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), anyInt(),anyInt()));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/posts/communities/{communityId}/page/{page}", 1L, 1)
@@ -175,6 +180,7 @@ public class PostControllerTests {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
                 .andExpect(jsonPath("$.totalPages").isNotEmpty())
                 .andReturn();
     }
@@ -182,7 +188,7 @@ public class PostControllerTests {
     @Test
     public void testGetUserPosts() throws Exception {
         given(postService.getUserPosts(anyLong(), anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), anyInt(),anyInt()));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/posts/users/{userId}/page/{page}", 1L, 1)
@@ -191,6 +197,7 @@ public class PostControllerTests {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
                 .andExpect(jsonPath("$.totalPages").isNotEmpty())
                 .andReturn();
     }
@@ -198,7 +205,7 @@ public class PostControllerTests {
     @Test
     public void testGetUserSavedPosts() throws Exception {
         given(postService.getUserSavedPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1,1));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/posts/saved/page/{page}", 1L, 1)
@@ -207,6 +214,7 @@ public class PostControllerTests {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
                 .andExpect(jsonPath("$.totalPages").isNotEmpty())
                 .andReturn();
     }

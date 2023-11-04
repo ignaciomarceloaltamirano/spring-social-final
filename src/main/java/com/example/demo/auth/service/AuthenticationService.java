@@ -1,9 +1,11 @@
 package com.example.demo.auth.service;
 
+import com.example.demo.auth.dto.request.RefreshTokenRequestDto;
 import com.example.demo.auth.dto.request.UserLoginRequestDto;
 import com.example.demo.auth.dto.request.UserRegisterRequestDto;
+import com.example.demo.auth.dto.response.LoginResponseDto;
 import com.example.demo.auth.dto.response.MessageDto;
-import com.example.demo.dto.response.UserResponseDto;
+import com.example.demo.auth.dto.response.TokenRefreshResponseDto;
 import com.example.demo.entity.RefreshToken;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
@@ -16,12 +18,11 @@ import com.example.demo.service.IFileUploadService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +43,6 @@ public class AuthenticationService {
     private final IFileUploadService fileUploadService;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
-    private final ModelMapper modelMapper;
 
     public MessageDto register(UserRegisterRequestDto userRegisterRequestDto, MultipartFile file) throws IOException {
         validateUser(userRegisterRequestDto);
@@ -64,13 +65,13 @@ public class AuthenticationService {
     public MessageDto registerAdmin(UserRegisterRequestDto userRegisterRequestDto, MultipartFile file) throws IOException {
         validateUser(userRegisterRequestDto);
         User user = createUser(userRegisterRequestDto, file);
-        Set<Role> roles = assignUserRoles(user, "mod","admin");
+        Set<Role> roles = assignUserRoles(user, "mod", "admin");
         user.setRoles(roles);
         userRepository.save(user);
         return new MessageDto("Successfully registered!");
     }
 
-    public ResponseEntity<UserResponseDto> login(UserLoginRequestDto userLoginRequestDto) {
+    public LoginResponseDto login(UserLoginRequestDto userLoginRequestDto) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -80,49 +81,49 @@ public class AuthenticationService {
         );
         context.setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
-        ResponseCookie jwtCookie = jwtService.generateJwtCookie(userDetails);
+        String jwtToken = jwtService.generateJwtToken(userDetails);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-        ResponseCookie jwtRefreshCookie = jwtService.generateJwtRefreshCookie(refreshToken.getToken());
+
+        List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
 
         User user = userRepository.findById(userDetails.getId()).get();
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
-                .body(modelMapper.map(user, UserResponseDto.class));
+
+        return LoginResponseDto.builder()
+                .id(userDetails.getId())
+                .email(userDetails.getEmail())
+                .roles(roles)
+                .username(userDetails.getUsername())
+                .imageUrl(user.getImageUrl())
+                .refreshToken(refreshToken.getToken())
+                .accessToken(jwtToken)
+                .build();
     }
 
     public ResponseEntity<MessageDto> logout() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!Objects.equals(principal.toString(), "anonymousUser")) {
             Long userId = ((UserDetailsImpl) principal).getId();
-            refreshTokenService.deleteByUserId(userId);
-        }
-
-        ResponseCookie jwtCookie = jwtService.getCleanJwtCookie();
-        ResponseCookie jwtRefreshCookie = jwtService.getCleanJwtRefreshCookie();
-
+            refreshTokenService.deleteByUser(userId);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
                 .body(new MessageDto("You've been logged out"));
+        }
+        return ResponseEntity.ok()
+                .body(new MessageDto("Log out failed"));
     }
 
-    public ResponseEntity<MessageDto> refreshToken(HttpServletRequest request) {
-        String token = jwtService.getJwtRefreshFromCookie(request);
-        if (token != null && !token.isEmpty()) {
-            return refreshTokenService.findByToken(token)
-                    .map(refreshTokenService::verifyExpiration)
-                    .map(RefreshToken::getUser)
-                    .map(user -> {
-                        ResponseCookie jwtCookie = jwtService.generateJwtCookie(user);
-                        return ResponseEntity.ok()
-                                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                                .body(new MessageDto("Refresh Token successfully refreshed"));
-                    })
-                    .orElseThrow(() -> new TokenRefreshException(token, "Refresh Token is not in DB"));
-        }
-        return ResponseEntity.badRequest().body(new MessageDto("Refresh Token is empty"));
+    public ResponseEntity<TokenRefreshResponseDto> refreshToken(RefreshTokenRequestDto request) {
+        String requestRefreshToken = request.getRefreshToken();
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                    String token = jwtService.generateJwtFromUsername(user.getUsername());
+                    return ResponseEntity.ok(TokenRefreshResponseDto.builder()
+                            .accessToken(token).refreshToken(requestRefreshToken).build());
+                })
+                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
+                        "Refresh token is not in database!"));
     }
 
     private Set<Role> assignUserRoles(User user, String... strRoles) {

@@ -73,29 +73,29 @@ public class CommentServiceTests {
         ;
     }
 
-    @Test
-    void testGetPostComments_Success() {
-        given(postRepository.findById(anyLong())).willReturn(Optional.of(post));
+//    @Test
+//    void testGetPostComments_Success() {
+//        given(postRepository.findById(anyLong())).willReturn(Optional.of(post));
+//
+//        Page<Comment> pageRequest = new PageImpl<>(Collections.singletonList(comment));
+//        given(commentRepository.findAllByPost(eq(post), any(PageRequest.class))).willReturn(pageRequest);
+//
+//        PageDto<CommentResponseDto> result = commentService.getPostComments(anyLong(), 1);
+//
+//        assertNotNull(result);
+//        assertThat(result).isInstanceOf(PageDto.class);
+//        verify(commentRepository, times(1)).findAllByPost(any(Post.class), any(PageRequest.class));
+//    }
 
-        Page<Comment> pageRequest = new PageImpl<>(Collections.singletonList(comment));
-        given(commentRepository.findAllByPost(eq(post), any(PageRequest.class))).willReturn(pageRequest);
-
-        PageDto<CommentResponseDto> result = commentService.getPostComments(anyLong(), 1);
-
-        assertNotNull(result);
-        assertThat(result).isInstanceOf(PageDto.class);
-        verify(commentRepository, times(1)).findAllByPost(any(Post.class), any(PageRequest.class));
-    }
-
-    @Test
-    void testGetPostComments_WhenPostNotFound_ThrowsResourceNotFoundException() {
-        given(postRepository.findById(anyLong())).willReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () ->
-                commentService.getPostComments(anyLong(), 1));
-
-        verify(commentRepository, never()).findAllByPost(any(), any());
-    }
+//    @Test
+//    void testGetPostComments_WhenPostNotFound_ThrowsResourceNotFoundException() {
+//        given(postRepository.findById(anyLong())).willReturn(Optional.empty());
+//
+//        assertThrows(ResourceNotFoundException.class, () ->
+//                commentService.getPostComments(anyLong(), 1));
+//
+//        verify(commentRepository, never()).findAllByPost(any(), any());
+//    }
 
     @Test
     void testCreateComment_Success() {

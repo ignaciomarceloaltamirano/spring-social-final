@@ -18,19 +18,18 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
 public class PostController {
     private final IPostService postService;
 
     @GetMapping("/page/{page}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
-    public PageDto<PostResponseDto> getPosts(
+    public ResponseEntity<PageDto<PostResponseDto>> getPosts(
             @PathVariable("page") int page
     ) {
-        return postService.getPosts(page);
+        return ResponseEntity.ok(postService.getPosts(page));
     }
 
     @GetMapping("/{postId}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public PostResponseDto getPost(
             @PathVariable("postId") Long postId
     ) {
@@ -38,7 +37,6 @@ public class PostController {
     }
 
     @GetMapping("/users/{userId}/page/{page}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PageDto<PostResponseDto>> getUserPosts(
             @PathVariable("userId") Long userId,
             @PathVariable("page") int page
@@ -47,7 +45,6 @@ public class PostController {
     }
 
     @GetMapping("/saved/page/{page}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PageDto<PostResponseDto>> getUserSavedPosts(
             @PathVariable("page") int page
     ) {
@@ -55,31 +52,29 @@ public class PostController {
     }
 
     @GetMapping("/subscribed/page/{page}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PageDto<PostResponseDto>> getUserSubscribedCommunitiesPosts(
             @PathVariable("page") int page
     ) {
         return ResponseEntity.ok(postService.getUserSubscribedCommunitiesPosts(page));
     }
 
-    @GetMapping("/upvoted/page/{page}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
+    @GetMapping("/upvoted/{userId}/page/{page}")
     public ResponseEntity<PageDto<PostResponseDto>> getUserUpVotedPosts(
+            @PathVariable("userId") Long userId,
             @PathVariable("page") int page
     ) {
         return ResponseEntity.ok(postService.getUserUpVotedPosts(page));
     }
 
-    @GetMapping("/downvoted/page/{page}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
+    @GetMapping("/downvoted/{userId}/page/{page}")
     public ResponseEntity<PageDto<PostResponseDto>> getUserDownVotedPosts(
+            @PathVariable("userId") Long userId,
             @PathVariable("page") int page
     ) {
         return ResponseEntity.ok(postService.getUserDownVotedPosts(page));
     }
 
     @GetMapping("/tag/{tagName}/page/{page}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PageDto<PostResponseDto>> getPostsByTag(
             @PathVariable("tagName") String tagName,
             @PathVariable("page") int page
@@ -88,7 +83,6 @@ public class PostController {
     }
 
     @GetMapping("/communities/{communityId}/page/{page}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PageDto<PostResponseDto>> getCommunityPosts(
             @PathVariable("communityId") Long communityId,
             @PathVariable("page") int page
@@ -97,7 +91,6 @@ public class PostController {
     }
 
     @GetMapping("is-saved/{postId}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Boolean> isPostSaved(
             @PathVariable("postId") Long postId
     ) {
@@ -105,7 +98,6 @@ public class PostController {
     }
 
     @PostMapping(value = "/{communityId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public PostResponseDto createPost(
             @PathVariable("communityId") Long communityId,
             @RequestPart(value = "post") @Valid PostRequestDto postRequestDto,
@@ -115,7 +107,6 @@ public class PostController {
     }
 
     @PostMapping("/save/{postId}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<MessageDto> savePost(
             @PathVariable("postId") Long postId
     ) {
@@ -123,7 +114,6 @@ public class PostController {
     }
 
     @DeleteMapping("/unsave/{postId}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<MessageDto> unSavePost(
             @PathVariable("postId") Long postId
     ) {
@@ -131,7 +121,6 @@ public class PostController {
     }
 
     @DeleteMapping("/{postId}")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_MOD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<MessageDto> deletePost(
             @PathVariable("postId") Long postId
     ) {

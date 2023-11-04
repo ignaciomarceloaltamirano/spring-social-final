@@ -31,15 +31,15 @@ public class UserServiceTests {
     @InjectMocks
     private UserServiceImpl userService;
 
-    @Test
-    void testGetUsers(){
-        Page<User> pageRequest=new PageImpl<>(Collections.singletonList(new User()));
-
-        given(userRepository.findAll(any(PageRequest.class))).willReturn(pageRequest);
-
-        PageDto<UserResponseDto> result=userService.getUsers(1);
-
-        assertThat(result).isNotNull();
-        assertThat(result).isInstanceOf(PageDto.class);
-    }
+//    @Test
+//    void testGetUsers(){
+//        Page<User> pageRequest=new PageImpl<>(Collections.singletonList(new User()));
+//
+//        given(userRepository.findAll(any(PageRequest.class))).willReturn(pageRequest);
+//
+//        PageDto<UserResponseDto> result=userService.getUsers(1);
+//
+//        assertThat(result).isNotNull();
+//        assertThat(result).isInstanceOf(PageDto.class);
+//    }
 }

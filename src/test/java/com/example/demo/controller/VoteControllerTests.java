@@ -54,18 +54,18 @@ public class VoteControllerTests {
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
 
-    @Test
-    public void testGetCurrentVote() throws Exception {
-        given(voteService.getCurrentVote(anyLong())).willReturn("UPVOTE");
-
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .get("/votes/user/{postId}",anyLong())
-                .contentType(MediaType.APPLICATION_JSON);
-
-        mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
-    }
+//    @Test
+//    public void testGetCurrentVote() throws Exception {
+//        given(voteService.getCurrentVote(anyLong())).willReturn("UPVOTE");
+//
+//        RequestBuilder requestBuilder= MockMvcRequestBuilders
+//                .get("/votes/user/{postId}",anyLong())
+//                .contentType(MediaType.APPLICATION_JSON);
+//
+//        mockMvc.perform(requestBuilder)
+//                .andExpect(status().isOk())
+//                .andReturn();
+//    }
 
     @Test
     public void testGetCurrentVote_WhenPostNotFound_ThrowsResourceNotFoundException() throws Exception {

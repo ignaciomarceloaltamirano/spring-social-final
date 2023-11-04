@@ -90,13 +90,13 @@ public class CommentVoteServiceTests {
     }
 
     @Test
-    void testGetCurrentVote_WhenCommentNotFound_ThrowsResourceNotFoundException() {
+    void testGetCurrentVote_WhenCommentNotFound_ReturnsNull() {
         given(commentRepository.findById(anyLong())).willReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () ->
-                commentVoteService.getCurrentVote(1L));
+        CommentVoteResponseDto result = commentVoteService.getCurrentVote(-1L);
 
         verify(commentRepository, times(1)).findById(anyLong());
+        assertNull(result);
     }
 
     @Test
@@ -109,6 +109,7 @@ public class CommentVoteServiceTests {
 
         assertThat(result).isNull();
         verify(commentRepository, times(1)).findById(anyLong());
+        verify(commentVoteRepository, times(1)).findByUserIdAndCommentId(anyLong(), anyLong());
     }
 
     @Test
@@ -122,13 +123,13 @@ public class CommentVoteServiceTests {
     }
 
     @Test
-    void testGetCommentVotes_WhenCommentNotFound_ThrowsResourceNotFoundException() {
+    void testGetCommentVotes_WhenCommentNotFound_ReturnsNull() {
         given(commentRepository.findById(anyLong())).willReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () ->
-                commentVoteService.getCommentVotes(1L));
+        CommentVoteResponseDto result = commentVoteService.getCurrentVote(-1L);
 
         verify(commentRepository, times(1)).findById(anyLong());
+        assertNull(result);
     }
 
     @Test

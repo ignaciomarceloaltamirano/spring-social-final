@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -52,30 +53,27 @@ public class CommunityControllerTests {
 
     @Test
     public void testGetCommunities() throws Exception {
-        given(communityService.getAllCommunities(anyInt()))
-                .willReturn(new PageDto<>(Collections.singletonList(new CommunityResponseDto()), anyInt()));
+        given(communityService.getAllCommunities()).willReturn(List.of(new CommunityResponseDto()));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/communities/page/{page}", 1L, 1)
+                .get("/communities")
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
                 .andReturn();
     }
 
     @Test
     public void testCreateCommunity() throws Exception {
-        CommunityRequestDto communityRequestDto= CommunityRequestDto.builder()
+        CommunityRequestDto communityRequestDto = CommunityRequestDto.builder()
                 .name("test")
                 .build();
 
         given(communityService.createCommunity(communityRequestDto))
                 .willReturn(CommunityResponseDto.builder().name(communityRequestDto.getName()).build());
 
-        RequestBuilder requestBuilder=MockMvcRequestBuilders.post("/communities")
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/communities")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(communityRequestDto));
 
@@ -88,15 +86,15 @@ public class CommunityControllerTests {
 
     @Test
     public void testUpdateCommunity_Success() throws Exception {
-        CommunityRequestDto communityRequestDto= CommunityRequestDto.builder()
+        CommunityRequestDto communityRequestDto = CommunityRequestDto.builder()
                 .name("test")
                 .build();
 
-        given(communityService.updateCommunity(1L,communityRequestDto))
+        given(communityService.updateCommunity(1L, communityRequestDto))
                 .willReturn(CommunityResponseDto.builder().name(communityRequestDto.getName()).build());
 
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .put("/communities/{communityId}",1L)
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .put("/communities/{communityId}", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(communityRequestDto));
 
@@ -105,19 +103,19 @@ public class CommunityControllerTests {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.name").value(communityRequestDto.getName()))
                 .andReturn();
-        }
+    }
 
     @Test
     public void testUpdateCommunity_WhenCommunityNotFound_ThrowsResourceNotFoundException() throws Exception {
-        CommunityRequestDto communityRequestDto= CommunityRequestDto.builder()
+        CommunityRequestDto communityRequestDto = CommunityRequestDto.builder()
                 .name("test")
                 .build();
 
-        given(communityService.updateCommunity(1L,communityRequestDto))
+        given(communityService.updateCommunity(1L, communityRequestDto))
                 .willThrow(new ResourceNotFoundException("Community not found"));
 
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .put("/communities/{communityId}",1L)
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .put("/communities/{communityId}", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(communityRequestDto));
 
@@ -128,15 +126,15 @@ public class CommunityControllerTests {
 
     @Test
     public void testUpdateCommunity_WhenUserIsNotEqualToCreator_ThrowsUnauthorizedUserException() throws Exception {
-        CommunityRequestDto communityRequestDto= CommunityRequestDto.builder()
+        CommunityRequestDto communityRequestDto = CommunityRequestDto.builder()
                 .name("test")
                 .build();
 
-        given(communityService.updateCommunity(1L,communityRequestDto))
+        given(communityService.updateCommunity(1L, communityRequestDto))
                 .willThrow(new UnauthorizedUserException("Not authorized"));
 
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .put("/communities/{communityId}",1L)
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .put("/communities/{communityId}", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(communityRequestDto));
 

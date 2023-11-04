@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.dto.request.PostRequestDto;
 import com.example.demo.dto.response.PageDto;
+import com.example.demo.dto.response.PageDto;
 import com.example.demo.dto.response.PostResponseDto;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,7 +16,7 @@ public interface IPostService {
     PageDto<PostResponseDto> getUserUpVotedPosts(int page);
     PageDto<PostResponseDto> getUserSubscribedCommunitiesPosts(int page);
     PageDto<PostResponseDto> getUserDownVotedPosts(int page);
-    PageDto<PostResponseDto> getPostsByCommunity(Long communityId,int page);
+    PageDto<PostResponseDto> getPostsByCommunity(Long communityId, int page);
     PageDto<PostResponseDto> getUserPosts(Long userId,int page);
     PageDto<PostResponseDto> getUserSavedPosts(int page);
     boolean isPostSaved(Long postId);
