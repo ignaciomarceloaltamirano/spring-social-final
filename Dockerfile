@@ -1,5 +1,5 @@
 FROM openjdk:17-jdk-alpine
-RUN mvn clean package -DskipTests
+RUN #mvn clean package -DskipTests
 COPY . .
 
 COPY --from=build /target/social_final.jar java-app.jar
