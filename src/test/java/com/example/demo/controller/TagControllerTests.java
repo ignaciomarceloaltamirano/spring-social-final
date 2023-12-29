@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.auth.service.JwtService;
 import com.example.demo.auth.service.UserDetailsServiceImpl;
+import com.example.demo.dto.response.TagResponseDto;
 import com.example.demo.entity.Tag;
 import com.example.demo.repository.TagRepository;
 import com.example.demo.service.IUtilService;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,14 +43,13 @@ public class TagControllerTests {
 
     @Test
     public void testGetTags() throws Exception {
-        given(tagService.getTags()).willReturn(Collections.singletonList(new Tag()));
+        given(tagService.getTags()).willReturn(List.of(new TagResponseDto()));
 
         RequestBuilder requestBuilder= MockMvcRequestBuilders
                 .get("/tags")
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 }

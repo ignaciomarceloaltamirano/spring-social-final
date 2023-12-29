@@ -38,7 +38,6 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
         User user = utilService.getCurrentUser();
         Optional<Subscription> optionalSubscription = subscriptionRepository
                 .findByCommunityIdAndUserId(communityId, user.getId());
-        ;
 
         if (optionalSubscription.isEmpty()) {
             Community community = communityRepository.findById(communityId)
@@ -63,6 +62,6 @@ public class SubscriptionServiceImpl implements ISubscriptionService {
 
         subscriptionRepository
                 .deleteByCommunityIdAndUserId(communityId, user.getId());
-        return new MessageDto("Unsubscribed from community " + subscription.getCommunity().getName());
+        return new MessageDto("Unsubscribed from community " + subscription.getCommunity().getName() + ".");
     }
 }

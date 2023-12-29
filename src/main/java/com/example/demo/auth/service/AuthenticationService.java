@@ -15,9 +15,8 @@ import com.example.demo.exception.UserAlreadyExistsException;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.IFileUploadService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,39 +32,22 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
-    private final IFileUploadService fileUploadService;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
+    private final PasswordEncoder passwordEncoder;
+    private final IFileUploadService fileUploadService;
 
     public MessageDto register(UserRegisterRequestDto userRegisterRequestDto, MultipartFile file) throws IOException {
         validateUser(userRegisterRequestDto);
         User user = createUser(userRegisterRequestDto, file);
         Set<Role> roles = assignUserRoles(user);
-        user.setRoles(roles);
-        userRepository.save(user);
-        return new MessageDto("Successfully registered!");
-    }
-
-    public MessageDto registerMod(UserRegisterRequestDto userRegisterRequestDto, MultipartFile file) throws IOException {
-        validateUser(userRegisterRequestDto);
-        User user = createUser(userRegisterRequestDto, file);
-        Set<Role> roles = assignUserRoles(user, "mod");
-        user.setRoles(roles);
-        userRepository.save(user);
-        return new MessageDto("Successfully registered!");
-    }
-
-    public MessageDto registerAdmin(UserRegisterRequestDto userRegisterRequestDto, MultipartFile file) throws IOException {
-        validateUser(userRegisterRequestDto);
-        User user = createUser(userRegisterRequestDto, file);
-        Set<Role> roles = assignUserRoles(user, "mod", "admin");
         user.setRoles(roles);
         userRepository.save(user);
         return new MessageDto("Successfully registered!");
@@ -102,13 +84,14 @@ public class AuthenticationService {
 
     public ResponseEntity<MessageDto> logout() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("PRINCIPAL FROM LOGOUT: " + principal.toString());
         if (!Objects.equals(principal.toString(), "anonymousUser")) {
             Long userId = ((UserDetailsImpl) principal).getId();
             refreshTokenService.deleteByUser(userId);
-        return ResponseEntity.ok()
-                .body(new MessageDto("You've been logged out"));
+            return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                    .body(new MessageDto("You've been logged out"));
         }
-        return ResponseEntity.ok()
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new MessageDto("Log out failed"));
     }
 
@@ -118,29 +101,18 @@ public class AuthenticationService {
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
-                    String token = jwtService.generateJwtFromUsername(user.getUsername());
+//                    String token = jwtService.generateJwtFromUsername(user.getUsername());
+                    String token = jwtService.generateJwtFromUserId(user.getId());
                     return ResponseEntity.ok(TokenRefreshResponseDto.builder()
                             .accessToken(token).refreshToken(requestRefreshToken).build());
                 })
                 .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
-                        "Refresh token is not in database!"));
+                        "Refresh token is not in database. Please make a new log in."));
     }
 
-    private Set<Role> assignUserRoles(User user, String... strRoles) {
+    private Set<Role> assignUserRoles(User user) {
         Set<Role> roles = new HashSet<>();
         roles.add(createRoleIfNotExists(ERole.ROLE_USER));
-        Arrays.asList(strRoles).forEach(role -> {
-            switch (role) {
-                case "admin":
-                    roles.add(createRoleIfNotExists(ERole.ROLE_ADMIN));
-                    break;
-                case "mod":
-                    roles.add(createRoleIfNotExists(ERole.ROLE_MOD));
-                    break;
-                default:
-                    break;
-            }
-        });
         return roles;
     }
 

@@ -3,6 +3,8 @@ package com.example.demo.auth.config;
 import com.example.demo.auth.filter.AuthTokenFilter;
 import com.example.demo.auth.service.AuthEntryPointJwt;
 import com.example.demo.auth.service.UserDetailsServiceImpl;
+import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.catalina.filters.CorsFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -10,6 +12,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -30,6 +34,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebMvc
@@ -60,17 +65,38 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(@NonNull CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowCredentials(true)
+                        .allowedOriginPatterns(
+                                "http://localhost:5000",
+                                "https://elegant-naiad-4aa2f3.netlify.app")
+                        .allowedMethods("*")
+                        .allowedHeaders("*");
+            }
+        };
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.
                 csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPointJwt))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/error", "/auth/**").permitAll()
-                        .requestMatchers("/comments/**", "/commentvotes/**","/communities/**", "/posts/**",
-                                "/search/**", "/subscriptions/**", "/tags/**", "users/**", "/votes/**")
+                        .requestMatchers(
+                                "/auth/**"
+                                , "/swagger-ui/**", "/v3/api-docs/**"
+                        )
+                        .permitAll()
+                        .requestMatchers("/comments/**", "/commentvotes/**",
+                                "/communities/**", "/posts/**",
+                                "/search/**", "/subscriptions/**",
+                                "/tags/**", "/users/**", "/votes/**")
                         .permitAll().anyRequest().authenticated()
-
                 );
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);

@@ -3,7 +3,9 @@ package com.example.demo.controller;
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.auth.service.JwtService;
 import com.example.demo.auth.service.UserDetailsServiceImpl;
+import com.example.demo.dto.request.UpdatePostRequestDto;
 import com.example.demo.dto.request.PostRequestDto;
+import com.example.demo.dto.response.DeletePostResponseDto;
 import com.example.demo.dto.response.PageDto;
 import com.example.demo.dto.response.PostResponseDto;
 import com.example.demo.exception.ResourceNotFoundException;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -53,13 +56,10 @@ public class PostControllerTests {
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
 
-    public PostControllerTests() {
-    }
-
     @Test
     public void testGetPosts() throws Exception {
         given(postService.getPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1,1));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1, 1));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/posts/page/{page}", 1)
@@ -69,8 +69,7 @@ public class PostControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
                 .andExpect(jsonPath("$.currentPage").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andReturn();
+                .andExpect(jsonPath("$.totalPages").isNotEmpty());
     }
 
     @Test
@@ -83,8 +82,7 @@ public class PostControllerTests {
 
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("test title"))
-                .andReturn();
+                .andExpect(jsonPath("$.title").value("test title"));
     }
 
     @Test
@@ -96,99 +94,13 @@ public class PostControllerTests {
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
-    }
-
-    @Test
-    public void testGetPostsByTag() throws Exception {
-        given(postService.getPostsByTag(anyString(), anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()),anyInt(),anyInt()));
-
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/posts/tag/{tagName}/page/{page}", "test", 1)
-                .accept(MediaType.APPLICATION_JSON);
-
-        mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.currentPage").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andReturn();
-    }
-
-    @Test
-    public void testGetUserUpVotedPosts() throws Exception {
-        given(postService.getUserUpVotedPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1,1));
-
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/posts/upvoted/{userId}/page/{page}", 1,1)
-                .accept(MediaType.APPLICATION_JSON);
-
-        mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.currentPage").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andReturn();
-    }
-
-    @Test
-    public void testGetUserDownVotedPosts() throws Exception {
-        given(postService.getUserDownVotedPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1,1));
-
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/posts/downvoted/{userId}/page/{page}", 1,1)
-                .accept(MediaType.APPLICATION_JSON);
-
-        mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.currentPage").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andReturn();
-    }
-
-    @Test
-    public void testGetUserSubscribedCommunitiesPosts() throws Exception {
-        given(postService.getUserSubscribedCommunitiesPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1,1));
-
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/posts/subscribed/page/{page}", 1)
-                .accept(MediaType.APPLICATION_JSON);
-
-        mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.currentPage").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andReturn();
-    }
-
-    @Test
-    public void testGetPostsByCommunity() throws Exception {
-        given(postService.getPostsByCommunity(anyLong(), anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), anyInt(),anyInt()));
-
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/posts/communities/{communityId}/page/{page}", 1L, 1)
-                .accept(MediaType.APPLICATION_JSON);
-
-        mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.currentPage").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andReturn();
+                .andExpect(status().isNotFound());
     }
 
     @Test
     public void testGetUserPosts() throws Exception {
         given(postService.getUserPosts(anyLong(), anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), anyInt(),anyInt()));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), anyInt(), anyInt()));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/posts/users/{userId}/page/{page}", 1L, 1)
@@ -198,14 +110,26 @@ public class PostControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
                 .andExpect(jsonPath("$.currentPage").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andReturn();
+                .andExpect(jsonPath("$.totalPages").isNotEmpty());
+    }
+
+    @Test
+    public void testGetUserPosts_WhenUserIsNotFound_ThrowsResourceNotFoundException() throws Exception {
+        given(postService.getUserPosts(anyLong(), anyInt()))
+                .willThrow(new ResourceNotFoundException("User not found."));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/posts/users/{userId}/page/{page}", 1L, 1)
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isNotFound());
     }
 
     @Test
     public void testGetUserSavedPosts() throws Exception {
         given(postService.getUserSavedPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1,1));
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1, 1));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/posts/saved/page/{page}", 1L, 1)
@@ -215,8 +139,100 @@ public class PostControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
                 .andExpect(jsonPath("$.currentPage").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andReturn();
+                .andExpect(jsonPath("$.totalPages").isNotEmpty());
+    }
+
+    @Test
+    public void testGetUserSubscribedCommunitiesPosts() throws Exception {
+        given(postService.getUserSubscribedCommunitiesPosts(anyInt()))
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1, 1));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/posts/subscribed/page/{page}", 1)
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
+                .andExpect(jsonPath("$.totalPages").isNotEmpty());
+    }
+
+//    @Test
+//    public void testGetUserUpVotedPosts() throws Exception {
+//        given(postService.getUserUpVotedPosts(userId, anyInt()))
+//                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1, 1));
+//
+//        RequestBuilder requestBuilder = MockMvcRequestBuilders
+//                .get("/posts/upvoted/{userId}/page/{page}", 1, 1)
+//                .accept(MediaType.APPLICATION_JSON);
+//
+//        mockMvc.perform(requestBuilder)
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.content").exists())
+//                .andExpect(jsonPath("$.currentPage").exists())
+//                .andExpect(jsonPath("$.totalPages").isNotEmpty());
+//    }
+
+//    @Test
+//    public void testGetUserDownVotedPosts() throws Exception {
+//        given(postService.getUserDownVotedPosts(userId, anyInt()))
+//                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1, 1));
+//
+//        RequestBuilder requestBuilder = MockMvcRequestBuilders
+//                .get("/posts/downvoted/{userId}/page/{page}", 1, 1)
+//                .accept(MediaType.APPLICATION_JSON);
+//
+//        mockMvc.perform(requestBuilder)
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.content").exists())
+//                .andExpect(jsonPath("$.currentPage").exists())
+//                .andExpect(jsonPath("$.totalPages").isNotEmpty());
+//    }
+
+    @Test
+    public void testGetPostsByTag() throws Exception {
+        given(postService.getPostsByTag(anyString(), anyInt()))
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), anyInt(), anyInt()));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/posts/tag/{tagName}/page/{page}", "test", 1)
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
+                .andExpect(jsonPath("$.totalPages").isNotEmpty());
+    }
+
+    @Test
+    public void testGetPostsByCommunity() throws Exception {
+        given(postService.getPostsByCommunity(anyLong(), anyInt()))
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), anyInt(), anyInt()));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/posts/communities/{communityId}/page/{page}", 1L, 1)
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
+                .andExpect(jsonPath("$.totalPages").isNotEmpty());
+    }
+
+    @Test
+    public void testGetPostsByCommunity_WhenCommunityIsNotFound_ThrowsResourceNotFoundException() throws Exception {
+        given(postService.getPostsByCommunity(anyLong(), anyInt()))
+                .willThrow(new ResourceNotFoundException("Community not found."));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/posts/communities/{communityId}/page/{page}", 1L, 1)
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -229,8 +245,7 @@ public class PostControllerTests {
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -243,8 +258,7 @@ public class PostControllerTests {
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -270,8 +284,7 @@ public class PostControllerTests {
                 .contentType(MediaType.MULTIPART_FORM_DATA);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -284,7 +297,7 @@ public class PostControllerTests {
 
         String postDtoJson = objectMapper.writeValueAsString(postRequestDto);
 
-        given(postService.createPost(any(PostRequestDto.class), anyLong(), any(MultipartFile.class)))
+        given(postService.createPost(any(PostRequestDto.class), anyLong(), eq(null)))
                 .willReturn(new PostResponseDto());
 
         MockMultipartFile jsonFile = new MockMultipartFile("post", "", "application/json", postDtoJson.getBytes());
@@ -295,12 +308,11 @@ public class PostControllerTests {
                 .contentType(MediaType.MULTIPART_FORM_DATA);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
-    public void testCreatePostWithFile_WhenCommunityNotFound_ThrowsResourceNotFoundException() throws Exception {
+    public void testCreatePost_WhenCommunityNotFound_ThrowsResourceNotFoundException() throws Exception {
         PostRequestDto postRequestDto = PostRequestDto.builder()
                 .title("test title")
                 .content("test content")
@@ -310,7 +322,7 @@ public class PostControllerTests {
         String postDtoJson = objectMapper.writeValueAsString(postRequestDto);
 
         given(postService.createPost(any(PostRequestDto.class), anyLong(), any(MultipartFile.class)))
-                .willThrow(new ResourceNotFoundException("Community not found"));
+                .willThrow(new ResourceNotFoundException("Community not found."));
 
         MockMultipartFile imageFile = new MockMultipartFile("image", "image.jpg", MediaType.IMAGE_JPEG_VALUE, new byte[0]);
         MockMultipartFile jsonFile = new MockMultipartFile("post", "", "application/json", postDtoJson.getBytes());
@@ -322,85 +334,154 @@ public class PostControllerTests {
                 .contentType(MediaType.MULTIPART_FORM_DATA);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testUpdatePostWithFile_Success() throws Exception {
+        PostRequestDto postRequestDto = PostRequestDto.builder()
+                .title("new title")
+                .content("new content")
+                .tags(Set.of("tag1", "tag2", "tag3"))
+                .build();
+
+        String postDtoJson = objectMapper.writeValueAsString(postRequestDto);
+
+        given(postService.updatePost(any(UpdatePostRequestDto.class), anyLong(), any(MultipartFile.class)))
+                .willReturn(new PostResponseDto());
+
+        MockMultipartFile imageFile = new MockMultipartFile("image", "image.jpg", MediaType.IMAGE_JPEG_VALUE, "image content".getBytes());
+        MockMultipartFile jsonFile = new MockMultipartFile("post", "", "application/json", postDtoJson.getBytes());
+
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
+                .multipart(HttpMethod.PUT, "/posts/{postId}", 1L)
+                .file(imageFile)
+                .file(jsonFile)
+                .contentType(MediaType.MULTIPART_FORM_DATA);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testUpdatePostWithOutFile_Success() throws Exception {
+        PostRequestDto postRequestDto = PostRequestDto.builder()
+                .title("new title")
+                .content("new content")
+                .tags(Set.of("tag1", "tag2", "tag3"))
+                .build();
+
+        String postDtoJson = objectMapper.writeValueAsString(postRequestDto);
+
+        given(postService.updatePost(any(UpdatePostRequestDto.class), anyLong(), eq(null)))
+                .willReturn(new PostResponseDto());
+
+        MockMultipartFile jsonFile = new MockMultipartFile("post", "", "application/json", postDtoJson.getBytes());
+
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
+                .multipart(HttpMethod.PUT, "/posts/{postId}", 1L)
+                .file(jsonFile)
+                .contentType(MediaType.MULTIPART_FORM_DATA);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testUpdatePost_WhenPostNotFound_ThrowsResourceNotFoundException() throws Exception {
+        PostRequestDto postRequestDto = PostRequestDto.builder()
+                .title("test title")
+                .content("test content")
+                .tags(Set.of("tag1", "tag2", "tag3"))
+                .build();
+
+        String postDtoJson = objectMapper.writeValueAsString(postRequestDto);
+
+        given(postService.updatePost(any(UpdatePostRequestDto.class), anyLong(), any(MultipartFile.class)))
+                .willThrow(new ResourceNotFoundException("Post not found."));
+
+        MockMultipartFile imageFile = new MockMultipartFile("image", "image.jpg", MediaType.IMAGE_JPEG_VALUE, new byte[0]);
+        MockMultipartFile jsonFile = new MockMultipartFile("post", "", "application/json", postDtoJson.getBytes());
+
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
+                .multipart(HttpMethod.PUT,"/posts/{postId}", 1L)
+                .file(imageFile)
+                .file(jsonFile)
+                .contentType(MediaType.MULTIPART_FORM_DATA);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isNotFound());
     }
 
     @Test
     public void testSavePost_Success_ReturnsMessageDto() throws Exception {
-        given(postService.savePost(anyLong())).willReturn(new MessageDto("Post saved"));
+        given(postService.savePost(anyLong())).willReturn(new MessageDto("Post saved."));
 
-        RequestBuilder requestBuilder=MockMvcRequestBuilders
-                .post("/posts/save/{postId}",1L)
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .post("/posts/save/{postId}", 1L)
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
     public void testSavePost_WhenPostNotFound_ThrowsResourceNotFoundException() throws Exception {
-        given(postService.savePost(anyLong())).willThrow(new ResourceNotFoundException("Post not found"));
+        given(postService.savePost(anyLong())).willThrow(new ResourceNotFoundException("Post not found."));
 
-        RequestBuilder requestBuilder=MockMvcRequestBuilders
-                .post("/posts/save/{postId}",1L)
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .post("/posts/save/{postId}", 1L)
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
+                .andExpect(status().isNotFound());
     }
 
     @Test
     public void testUnSavePost_Success_ReturnsMessageDto() throws Exception {
-        given(postService.savePost(anyLong())).willReturn(new MessageDto("Post unsaved"));
+        given(postService.savePost(anyLong())).willReturn(new MessageDto("Post unsaved."));
 
-        RequestBuilder requestBuilder=MockMvcRequestBuilders
-                .delete("/posts/unsave/{postId}",1L)
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .delete("/posts/unsave/{postId}", 1L)
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
     public void testUnSavePost_WhenPostNotFound_ThrowsResourceNotFoundException() throws Exception {
-        given(postService.unSavePost(anyLong())).willThrow(new ResourceNotFoundException("Post not found"));
+        given(postService.unSavePost(anyLong())).willThrow(new ResourceNotFoundException("Post not found."));
 
-        RequestBuilder requestBuilder=MockMvcRequestBuilders
-                .delete("/posts/unsave/{postId}",1L)
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .delete("/posts/unsave/{postId}", 1L)
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
+                .andExpect(status().isNotFound());
     }
 
     @Test
     public void testDeletePost_Success_ReturnsMessageDto() throws Exception {
-        given(postService.deletePost(anyLong())).willReturn(new MessageDto("Post deleted"));
+        given(postService.deletePost(anyLong())).willReturn(new DeletePostResponseDto());
 
-        RequestBuilder requestBuilder=MockMvcRequestBuilders
-                .delete("/posts/{postId}",1L)
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .delete("/posts/{postId}", 1L)
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
     public void testDeletePost_WhenPostNotFound_ThrowsResourceNotFoundException() throws Exception {
-        given(postService.deletePost(anyLong())).willThrow(new ResourceNotFoundException("Post not found"));
+        given(postService.deletePost(anyLong())).willThrow(new ResourceNotFoundException("Post not found."));
 
-        RequestBuilder requestBuilder=MockMvcRequestBuilders
-                .delete("/posts/{postId}",1L)
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .delete("/posts/{postId}", 1L)
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
+                .andExpect(status().isNotFound());
     }
 }

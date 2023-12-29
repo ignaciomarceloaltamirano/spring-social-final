@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CommunityRepository extends JpaRepository<Community,Long> {
-    List<Community> findAll();
     boolean existsByName(String name);
     Optional<Community> findByName(String name);
 }

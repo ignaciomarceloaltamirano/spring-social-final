@@ -67,8 +67,7 @@ public class CommentControllerTests {
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -161,7 +160,7 @@ public class CommentControllerTests {
                 .willThrow(new ResourceNotFoundException("Comment not found"));
 
         UpdateCommentRequestDto updateRequestDto = new UpdateCommentRequestDto();
-        updateRequestDto.setText("Updated comment");
+        updateRequestDto.setText("Updated comment.");
 
         mockMvc.perform(MockMvcRequestBuilders.put("/comments/{commentId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -177,11 +176,10 @@ public class CommentControllerTests {
                 .delete("/comments/{commentId}", 1L, 1)
                 .accept(MediaType.APPLICATION_JSON);
 
-      mockMvc.perform(requestBuilder)
+        mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
-              .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-              .andExpect(jsonPath("$.message").value("Comment deleted"))
-                .andReturn();
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Comment deleted"));
     }
 
     @Test

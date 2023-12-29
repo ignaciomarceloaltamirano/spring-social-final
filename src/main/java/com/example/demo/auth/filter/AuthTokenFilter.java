@@ -29,8 +29,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         try {
             String jwt = parseJwt(request);
             if (jwt != null && jwtService.isJwtValid(jwt)) {
-                String username = jwtService.getUsernameFromJwt(jwt);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+//                String username = jwtService.getUsernameFromJwt(jwt);
+                String userId = jwtService.getUserIdFromJwt(jwt);
+                UserDetails userDetails = userDetailsService.loadUserById(Long.valueOf(userId));
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -38,7 +39,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 );
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
-                System.out.println("Principal from filter: " + auth.getPrincipal());
             }
         } catch (Exception e) {
             logger.error("Cannot set user authentication: " + e.getMessage());

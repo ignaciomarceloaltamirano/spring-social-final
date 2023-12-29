@@ -54,13 +54,12 @@ public class SubscriptionControllerTests {
         given(subscriptionService.getSubscription(anyLong()))
                 .willReturn(true);
 
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .get("/subscriptions/{communityId}",anyLong())
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/subscriptions/{communityId}", anyLong())
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -68,13 +67,12 @@ public class SubscriptionControllerTests {
         given(subscriptionService.getSubscription(anyLong()))
                 .willReturn(false);
 
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .get("/subscriptions/{communityId}",anyLong())
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/subscriptions/{communityId}", anyLong())
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -82,13 +80,12 @@ public class SubscriptionControllerTests {
         given(subscriptionService.getSubscriptionsCountByCommunity(1L))
                 .willReturn(1L);
 
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .get("/subscriptions/{communityId}/count",anyLong())
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/subscriptions/{communityId}/count", anyLong())
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -96,55 +93,52 @@ public class SubscriptionControllerTests {
         given(subscriptionService.createSubscription(anyLong()))
                 .willReturn(SubscriptionResponseDto.builder().communityName("test").build());
 
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .post("/subscriptions/subscribe/{communityId}",anyLong())
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .post("/subscriptions/subscribe/{communityId}", anyLong())
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.communityName").value("test"))
-                .andReturn();
+                .andExpect(jsonPath("$.communityName").value("test"));
     }
 
     @Test
     public void testCreateSubscription_WhenCommunityNotFound_ThrowsResourceNotFoundException() throws Exception {
         given(subscriptionService.createSubscription(anyLong()))
-                .willThrow(new ResourceNotFoundException("Community not found"));
+                .willThrow(new ResourceNotFoundException("Community not found."));
 
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .post("/subscriptions/subscribe/{communityId}",anyLong())
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .post("/subscriptions/subscribe/{communityId}", anyLong())
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
+                .andExpect(status().isNotFound());
     }
+
     @Test
     public void testDeleteSubscription_Success_ReturnsMessageDto() throws Exception {
         given(subscriptionService.deleteSubscription(anyLong()))
-                .willReturn(new MessageDto("Unsubscribed from community"));
+                .willReturn(new MessageDto("Unsubscribed from community."));
 
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .delete("/subscriptions/unsubscribe/{communityId}",anyLong())
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .delete("/subscriptions/unsubscribe/{communityId}", anyLong())
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Unsubscribed from community"))
-                .andReturn();
+                .andExpect(jsonPath("$.message").value("Unsubscribed from community."));
     }
 
     @Test
     public void testDeleteSubscription_WhenSubscriptionNotFound_ThrowsResourceNotFoundException() throws Exception {
         given(subscriptionService.deleteSubscription(anyLong()))
-                .willThrow(new ResourceNotFoundException("Subscription not found"));
+                .willThrow(new ResourceNotFoundException("Subscription not found."));
 
-        RequestBuilder requestBuilder= MockMvcRequestBuilders
-                .delete("/subscriptions/unsubscribe/{communityId}",anyLong())
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .delete("/subscriptions/unsubscribe/{communityId}", anyLong())
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
+                .andExpect(status().isNotFound());
     }
 }

@@ -74,6 +74,14 @@ public class ApplicationExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IllegalStateException.class)
+    public Map<String, String> handleIllegalStateException(IllegalStateException ex) {
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("message",ex.getMessage());
+        return errorMap;
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public Map<String,String> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex){
         Map<String,String> errorMap=new HashMap<>();

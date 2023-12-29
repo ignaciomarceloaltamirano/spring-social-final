@@ -43,6 +43,7 @@ public class ModelMapperConfig {
                 .createTypeMap(Comment.class, CommentResponseDto.class);
         commentTypeMap.addMapping(src -> src.getAuthor().getId(), CommentResponseDto::setAuthorId);
         commentTypeMap.addMapping(src -> src.getAuthor().getUsername(), CommentResponseDto::setAuthorName);
+        commentTypeMap.addMapping(src -> src.getAuthor().getImageUrl(), CommentResponseDto::setAuthorImageUrl);
         commentTypeMap.addMapping(src -> src.getPost().getId(), CommentResponseDto::setPostId);
         commentTypeMap.addMapping(src -> src.getReplyTo().getId(), CommentResponseDto::setReplyToId);
 
@@ -50,14 +51,15 @@ public class ModelMapperConfig {
         userTypeMap.addMappings(mapping -> mapping.using(new RolesToStringsConverter())
                 .map(User::getRoles, UserResponseDto::setRoles));
 
-        TypeMap<Subscription,SubscriptionResponseDto> subscriptionTypeMap= modelMapper
+        TypeMap<Subscription, SubscriptionResponseDto> subscriptionTypeMap = modelMapper
                 .createTypeMap(Subscription.class, SubscriptionResponseDto.class);
-        subscriptionTypeMap.addMapping(src->src.getUser().getId(),SubscriptionResponseDto::setUserId);
-        subscriptionTypeMap.addMapping(src->src.getUser().getUsername(),SubscriptionResponseDto::setUserName);
-        subscriptionTypeMap.addMapping(src->src.getCommunity().getId(),SubscriptionResponseDto::setCommunityId);
-        subscriptionTypeMap.addMapping(src->src.getCommunity().getName(),SubscriptionResponseDto::setCommunityName);
+        subscriptionTypeMap.addMapping(src -> src.getUser().getId(), SubscriptionResponseDto::setUserId);
+        subscriptionTypeMap.addMapping(src -> src.getUser().getUsername(), SubscriptionResponseDto::setUserName);
+        subscriptionTypeMap.addMapping(src -> src.getCommunity().getId(), SubscriptionResponseDto::setCommunityId);
+        subscriptionTypeMap.addMapping(src -> src.getCommunity().getName(), SubscriptionResponseDto::setCommunityName);
         return modelMapper;
     }
+
 
     public static class RolesToStringsConverter extends AbstractConverter<Set<Role>, List<ERole>> {
         protected List<ERole> convert(Set<Role> roles) {

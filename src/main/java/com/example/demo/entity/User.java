@@ -26,7 +26,8 @@ public class User {
     private String password;
     private String imageUrl;
 
-    @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.PERSIST)
+    //    @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.PERSIST)
+    @ManyToMany
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -40,7 +41,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "post_id")
     )
     @JsonIgnore
-    private Set<Post> savedPosts=new HashSet<>();
+    private Set<Post> savedPosts = new HashSet<>();
 
     public void savePost(Post post) {
         savedPosts.add(post);

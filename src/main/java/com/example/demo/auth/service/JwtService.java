@@ -33,23 +33,47 @@ public class JwtService {
 
     private static final Logger logger= LoggerFactory.getLogger(JwtService.class);
 
+//    public String generateJwtToken(UserDetailsImpl userPrincipal) {
+//        return generateJwtFromUsername(userPrincipal.getUsername());
+//    }
+//
+//    public String generateJwtFromUsername(String username) {
+//        Instant now = Instant.now();
+//        Instant expiration = now.plus(jwtExpirationMs, ChronoUnit.MILLIS);
+//        return Jwts
+//                .builder()
+//                .signWith(key(), SignatureAlgorithm.HS384)
+//                .setSubject(username)
+//                .setIssuedAt(Date.from(now))
+//                .setExpiration(Date.from(expiration))
+//                .compact();
+//    }
+//
+//    public String getUsernameFromJwt(String jwt){
+//        return Jwts.parserBuilder()
+//                .setSigningKey(key())
+//                .build()
+//                .parseClaimsJws(jwt)
+//                .getBody().getSubject();
+//    }
+
     public String generateJwtToken(UserDetailsImpl userPrincipal) {
-        return generateJwtFromUsername(userPrincipal.getUsername());
+        return generateJwtFromUserId(userPrincipal.getId());
     }
 
-    public String generateJwtFromUsername(String username) {
+    public String generateJwtFromUserId(Long userId) {
         Instant now = Instant.now();
         Instant expiration = now.plus(jwtExpirationMs, ChronoUnit.MILLIS);
         return Jwts
                 .builder()
                 .signWith(key(), SignatureAlgorithm.HS384)
-                .setSubject(username)
+                .setSubject(String.valueOf(userId))
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(expiration))
                 .compact();
     }
 
-    public String getUsernameFromJwt(String jwt){
+    public String getUserIdFromJwt(String jwt){
         return Jwts.parserBuilder()
                 .setSigningKey(key())
                 .build()

@@ -45,12 +45,11 @@ public class CommentVoteServiceImpl implements ICommentVoteService {
     public List<CommentVoteResponseDto> getCommentVotes(Long commentId) {
         Comment comment = commentRepository.findById(commentId).orElse(null);
 
-        if(comment==null){
-            return  null;
-        }else{
-
-        return commentVoteRepository.findAllByComment(comment).stream().map(
-                commentVote -> modelMapper.map(commentVote, CommentVoteResponseDto.class)).toList();
+        if (comment == null) {
+            return null;
+        } else {
+            return commentVoteRepository.findAllByComment(comment).stream().map(
+                    commentVote -> modelMapper.map(commentVote, CommentVoteResponseDto.class)).toList();
         }
     }
 

@@ -37,7 +37,7 @@ public class CommentServiceImpl implements ICommentService {
 
         List<Comment> comments = commentRepository.findAllByPost(post);
 
-        return  comments.stream().map(comment -> modelMapper.map(comment, CommentResponseDto.class)).toList();
+        return comments.stream().map(comment -> modelMapper.map(comment, CommentResponseDto.class)).toList();
 
     }
 
@@ -45,8 +45,6 @@ public class CommentServiceImpl implements ICommentService {
         User user = utilService.getCurrentUser();
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
-
-        System.out.println(commentRequestDto);
 
         Comment comment = Comment.builder()
                 .author(user)
@@ -65,13 +63,11 @@ public class CommentServiceImpl implements ICommentService {
 
     @Transactional
     public CommentResponseDto updateComment(Long commentId, UpdateCommentRequestDto updateCommentRequestDto) {
-        User user = utilService.getCurrentUser();
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
 
         if (!Objects.equals(comment.getText(), updateCommentRequestDto.getText()) &&
-                !updateCommentRequestDto.getText().isEmpty() &&
-                comment.getAuthor() == user
+                !updateCommentRequestDto.getText().isEmpty()
         ) {
             comment.setText(updateCommentRequestDto.getText());
         }

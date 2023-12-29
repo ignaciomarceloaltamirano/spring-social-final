@@ -29,20 +29,20 @@ public class CommunityServiceImpl implements ICommunityService {
     private final ModelMapper modelMapper;
 
     public List<CommunityResponseDto> getAllCommunities() {
-        List<Community> communities= communityRepository.findAll();
-              return  communities.stream().map(community -> modelMapper.map(community,CommunityResponseDto.class)).toList();
+        List<Community> communities = communityRepository.findAll();
+        return communities.stream().map(community -> modelMapper.map(community, CommunityResponseDto.class)).toList();
     }
 
     public CommunityResponseDto getCommunity(String name) {
-        Community community= communityRepository.findByName(name)
-                .orElseThrow(()->new ResourceNotFoundException("Community not found."));
+        Community community = communityRepository.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Community not found."));
 
-        return modelMapper.map(community,CommunityResponseDto.class);
+        return modelMapper.map(community, CommunityResponseDto.class);
     }
 
     public CommunityResponseDto createCommunity(CommunityRequestDto communityRequestDto) {
-        boolean existsCommunity=communityRepository.existsByName(communityRequestDto.getName());
-        if(existsCommunity){
+        boolean existsCommunity = communityRepository.existsByName(communityRequestDto.getName());
+        if (existsCommunity) {
             throw new ResourceAlreadyExists("Community with name: " + communityRequestDto.getName() + " already exists.");
         }
         User user = utilService.getCurrentUser();
@@ -51,33 +51,31 @@ public class CommunityServiceImpl implements ICommunityService {
                 .name(communityRequestDto.getName())
                 .build();
         communityRepository.save(community);
-        return modelMapper.map(community,CommunityResponseDto.class);
+        return modelMapper.map(community, CommunityResponseDto.class);
     }
+
     @Transactional
     public CommunityResponseDto updateCommunity(Long communityId, CommunityRequestDto communityRequestDto) {
-        User user = utilService.getCurrentUser();
-        Community community=communityRepository.findById(communityId)
-                .orElseThrow(()->new ResourceNotFoundException("Community not found."));
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new ResourceNotFoundException("Community not found."));
 
-        if(user!= community.getCreator()){
-            throw  new UnauthorizedUserException("Not authorized.");
-        }
-
-        if(!Objects.equals(community.getName(), communityRequestDto.getName()) &&
+        if (!Objects.equals(community.getName(), communityRequestDto.getName()) &&
                 !communityRequestDto.getName().isEmpty()
-        ){
+        ) {
             community.setName(communityRequestDto.getName());
         }
-        return modelMapper.map(community,CommunityResponseDto.class);
+        return modelMapper.map(community, CommunityResponseDto.class);
     }
 
     public MessageDto deleteCommunity(Long communityId) {
         User user = utilService.getCurrentUser();
-        Community community=communityRepository.findById(communityId)
-                .orElseThrow(()->new ResourceNotFoundException("Community not found."));
-        if(user!= community.getCreator()){
-            throw  new UnauthorizedUserException("Not authorized.");
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new ResourceNotFoundException("Community not found."));
+
+        if (user != community.getCreator()) {
+            throw new UnauthorizedUserException("Not authorized.");
         }
+
         communityRepository.delete(community);
         return new MessageDto("Community deleted.");
     }

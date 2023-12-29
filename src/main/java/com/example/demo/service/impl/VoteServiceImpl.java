@@ -33,9 +33,9 @@ public class VoteServiceImpl implements IVoteService {
         Optional<Post> postOptional = postRepository.findById(postId);
         if (postOptional.isPresent()) {
             Vote vote = voteRepository.findByUserIdAndPostId(user.getId(), postOptional.get().getId());
-            return vote != null ? modelMapper.map(vote,VoteResponseDto.class) : null;
+            return vote != null ? modelMapper.map(vote, VoteResponseDto.class) : null;
         } else {
-            throw new ResourceNotFoundException("Post not found");
+            throw new ResourceNotFoundException("Post not found.");
         }
     }
 

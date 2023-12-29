@@ -54,18 +54,30 @@ public class VoteControllerTests {
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
 
-//    @Test
-//    public void testGetCurrentVote() throws Exception {
-//        given(voteService.getCurrentVote(anyLong())).willReturn("UPVOTE");
-//
-//        RequestBuilder requestBuilder= MockMvcRequestBuilders
-//                .get("/votes/user/{postId}",anyLong())
-//                .contentType(MediaType.APPLICATION_JSON);
-//
-//        mockMvc.perform(requestBuilder)
-//                .andExpect(status().isOk())
-//                .andReturn();
-//    }
+    @Test
+    public void testGetCurrentVote_WhenVoteExists_ReturnsVote() throws Exception {
+        given(voteService.getCurrentVote(anyLong())).willReturn(new VoteResponseDto());
+
+        RequestBuilder requestBuilder= MockMvcRequestBuilders
+                .get("/votes/user/{postId}",anyLong())
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetCurrentVote_WhenVoteDoesNotExist_ReturnsNull() throws Exception {
+        given(voteService.getCurrentVote(anyLong())).willReturn(null);
+
+        RequestBuilder requestBuilder= MockMvcRequestBuilders
+                .get("/votes/user/{postId}",anyLong())
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(jsonPath("$").doesNotExist())
+                .andExpect(status().isOk());
+    }
 
     @Test
     public void testGetCurrentVote_WhenPostNotFound_ThrowsResourceNotFoundException() throws Exception {
@@ -76,8 +88,7 @@ public class VoteControllerTests {
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -89,8 +100,7 @@ public class VoteControllerTests {
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -106,8 +116,7 @@ public class VoteControllerTests {
 
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.type").value(voteRequestDto.getType()))
-                .andReturn();
+                .andExpect(jsonPath("$.type").value(voteRequestDto.getType()));
     }
 
     @Test
@@ -160,8 +169,7 @@ public class VoteControllerTests {
                 .content(objectMapper.writeValueAsString(voteRequestDto));
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();;
+                .andExpect(status().isNotFound());
     }
 
 }

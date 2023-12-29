@@ -14,10 +14,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentRequestDto {
-    @NotEmpty
+    @NotEmpty(message = "Text must not be empty.")
     @Size(max = 255)
     private String text;
-
     @Nullable
     @Positive
     private Long replyToId;

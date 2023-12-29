@@ -51,7 +51,7 @@ public class SearchControllerTests {
     private UserDetailsServiceImpl userDetailsService;
 
     @Test
-    public void testPostsByTitleOrAuthorContaining() throws Exception {
+    public void testGetPostsByTitleOrAuthorContaining() throws Exception {
         CommunityResponseDto communityResponseDto = CommunityResponseDto.builder()
                 .name("test")
                 .build();
@@ -68,7 +68,6 @@ public class SearchControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").exists())
                 .andExpect(jsonPath("$.currentPage").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty())
-                .andReturn();
+                .andExpect(jsonPath("$.totalPages").isNotEmpty());
     }
 }

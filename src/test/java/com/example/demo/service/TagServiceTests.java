@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.response.TagResponseDto;
 import com.example.demo.entity.Tag;
 import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.TagRepository;
@@ -36,7 +37,7 @@ public class TagServiceTests {
 
         given(tagRepository.findTagsWihPosts()).willReturn(List.of(tag1,tag2));
 
-        List<Tag> result = tagService.getTags();
+        List<TagResponseDto> result = tagService.getTags();
 
         assertThat(result).isNotNull();
         assertThat(result.size()).isGreaterThan(0);

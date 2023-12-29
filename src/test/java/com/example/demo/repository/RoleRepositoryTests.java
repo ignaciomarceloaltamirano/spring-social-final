@@ -28,21 +28,7 @@ public class RoleRepositoryTests {
                     .build();
             roleRepository.save(userRole);
         }
-
-        if (roleRepository.findByName(ERole.ROLE_MOD).isEmpty()) {
-            Role modRole = Role.builder()
-                    .name(ERole.ROLE_MOD)
-                    .build();
-            roleRepository.save(modRole);
-        }
-
-        if (roleRepository.findByName(ERole.ROLE_ADMIN).isEmpty()) {
-            Role adminRole = Role.builder()
-                    .name(ERole.ROLE_ADMIN)
-                    .build();
-            roleRepository.save(adminRole);
-        }
-        assertThat(roleRepository.count()).isEqualTo(3);
+        assertThat(roleRepository.count()).isEqualTo(1);
     }
 
     @Test
@@ -52,23 +38,7 @@ public class RoleRepositoryTests {
                 .build();
         roleRepository.save(userRole);
 
-        Role modRole = Role.builder()
-                .name(ERole.ROLE_MOD)
-                .build();
-        roleRepository.save(modRole);
-
-        Role adminRole = Role.builder()
-                .name(ERole.ROLE_ADMIN)
-                .build();
-        roleRepository.save(adminRole);
-
         Role retrievedUserRole = roleRepository.findByName(ERole.ROLE_USER).get();
         assertThat(retrievedUserRole.getName()).isEqualTo(ERole.ROLE_USER);
-
-        Role retrievedModRole = roleRepository.findByName(ERole.ROLE_MOD).get();
-        assertThat(retrievedModRole.getName()).isEqualTo(ERole.ROLE_MOD);
-
-        Role retrievedAdminRole = roleRepository.findByName(ERole.ROLE_ADMIN).get();
-        assertThat(retrievedAdminRole.getName()).isEqualTo(ERole.ROLE_ADMIN);
     }
 }

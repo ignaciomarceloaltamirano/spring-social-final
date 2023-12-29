@@ -63,50 +63,63 @@ public class CommentVoteControllerTests {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.type").value("UPVOTE"))
-                .andReturn();
+                .andExpect(jsonPath("$.type").value("UPVOTE"));
     }
 
     @Test
-    public void testGetCurrentVote_WhenCommentNotFound_ThrowsResourceNotFoundException() throws Exception {
+    public void testGetCurrentVote_WhenCommentNotFound_ReturnsNull() throws Exception {
         given(commentVoteService.getCurrentVote(anyLong()))
-                .willThrow(new ResourceNotFoundException("Comment not found"));
+                .willReturn(null);
 
-        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/commentvotes/user/{commentId}", anyLong());
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/commentvotes/user/{commentId}", anyLong());
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").doesNotExist());
+    }
+
+    @Test
+    public void testGetCurrentVote_WhenCommentVoteNotFound_ReturnsNull() throws Exception {
+        given(commentVoteService.getCurrentVote(anyLong()))
+                .willReturn(null);
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/commentvotes/user/{commentId}", anyLong());
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").doesNotExist());
     }
 
     @Test
     public void testGetCommentVotes_Success() throws Exception {
-        given(commentVoteService.getCommentVotes(anyLong())).willReturn(
-                List.of(new CommentVoteResponseDto()));
+        given(commentVoteService.getCommentVotes(anyLong()))
+                .willReturn(List.of(new CommentVoteResponseDto()));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/commentvotes/comment/{commentId}", anyLong());
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    public void testGetCommentVotes_WhenCommentNotFound_ReturnsNull() throws Exception {
+        given(commentVoteService.getCommentVotes(anyLong()))
+                .willReturn(null);
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/commentvotes/comment/{commentId}", anyLong());
 
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
-    }
-
-    @Test
-    public void testGetCommentVotes_WhenCommentNotFound_ThrowsResourceNotFoundException() throws Exception {
-        given(commentVoteService.getCommentVotes(anyLong()))
-                .willThrow(new ResourceNotFoundException("Comment not found"));
-
-        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/commentvotes/comment/{commentId}", anyLong());
-
-        mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
+                .andExpect(jsonPath("$").doesNotExist());
     }
 
     @Test
     public void testCommentVote_WhenVoteDoesNotExist_ReturnsNewCommentVote() throws Exception {
-        CommentVoteRequestDto commentVoteRequestDto=CommentVoteRequestDto.builder().type("UPVOTE").build();
+        CommentVoteRequestDto commentVoteRequestDto = CommentVoteRequestDto.builder().type("UPVOTE").build();
 
         given(commentVoteService.commentVote(commentVoteRequestDto, 1L))
                 .willReturn(CommentVoteResponseDto.builder().type(commentVoteRequestDto.getType()).build());
@@ -124,7 +137,7 @@ public class CommentVoteControllerTests {
 
     @Test
     public void testCommentVote_WhenVoteTypeIsEqualToCurrent_DeletesCommentVote() throws Exception {
-        CommentVoteRequestDto commentVoteRequestDto=CommentVoteRequestDto.builder().type("UPVOTE").build();
+        CommentVoteRequestDto commentVoteRequestDto = CommentVoteRequestDto.builder().type("UPVOTE").build();
 
         given(commentVoteService.commentVote(commentVoteRequestDto, 1L))
                 .willReturn(new MessageDto("Vote deleted"));
@@ -142,7 +155,7 @@ public class CommentVoteControllerTests {
 
     @Test
     public void testCommentVote_WhenVoteTypeIsNotEqualToCurrent_ReturnsUpdatedCommentVote() throws Exception {
-        CommentVoteRequestDto commentVoteRequestDto=CommentVoteRequestDto.builder().type("UPVOTE").build();
+        CommentVoteRequestDto commentVoteRequestDto = CommentVoteRequestDto.builder().type("UPVOTE").build();
 
         given(commentVoteService.commentVote(commentVoteRequestDto, 1L))
                 .willReturn(CommentVoteResponseDto.builder().type("UPVOTE").build());
@@ -161,7 +174,7 @@ public class CommentVoteControllerTests {
 
     @Test
     public void testCommentVote_WhenCommentNotFound_ThrowsResourceNotFoundException() throws Exception {
-        CommentVoteRequestDto commentVoteRequestDto=CommentVoteRequestDto.builder().type("UPVOTE").build();
+        CommentVoteRequestDto commentVoteRequestDto = CommentVoteRequestDto.builder().type("UPVOTE").build();
 
         given(commentVoteService.commentVote(commentVoteRequestDto, 1L))
                 .willThrow(new ResourceNotFoundException("Comment not found"));
@@ -172,7 +185,7 @@ public class CommentVoteControllerTests {
                 .content(objectMapper.writeValueAsString(commentVoteRequestDto));
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();;
+                .andExpect(status().isNotFound());
+        ;
     }
 }

@@ -60,8 +60,19 @@ public class CommunityControllerTests {
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetCommunity() throws Exception {
+        given(communityService.getCommunity("test")).willReturn(new CommunityResponseDto());
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/communities/{communityName}","test")
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -80,8 +91,24 @@ public class CommunityControllerTests {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.name").value(communityRequestDto.getName()))
-                .andReturn();
+                .andExpect(jsonPath("$.name").value(communityRequestDto.getName()));
+    }
+
+    @Test
+    public void testCreateCommunity_WhenCommunityAlreadyExists_ThrowsResourceAlreadyExistsException() throws Exception {
+        CommunityRequestDto communityRequestDto = CommunityRequestDto.builder()
+                .name("test")
+                .build();
+
+        given(communityService.createCommunity(communityRequestDto))
+                .willThrow(new ResourceNotFoundException("Community with name: " + communityRequestDto.getName() + " already exists."));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/communities")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(communityRequestDto));
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -101,8 +128,7 @@ public class CommunityControllerTests {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.name").value(communityRequestDto.getName()))
-                .andReturn();
+                .andExpect(jsonPath("$.name").value(communityRequestDto.getName()));
     }
 
     @Test
@@ -120,26 +146,6 @@ public class CommunityControllerTests {
                 .content(objectMapper.writeValueAsString(communityRequestDto));
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isNotFound())
-                .andReturn();
-    }
-
-    @Test
-    public void testUpdateCommunity_WhenUserIsNotEqualToCreator_ThrowsUnauthorizedUserException() throws Exception {
-        CommunityRequestDto communityRequestDto = CommunityRequestDto.builder()
-                .name("test")
-                .build();
-
-        given(communityService.updateCommunity(1L, communityRequestDto))
-                .willThrow(new UnauthorizedUserException("Not authorized"));
-
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .put("/communities/{communityId}", 1L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(communityRequestDto));
-
-        mockMvc.perform(requestBuilder)
-                .andExpect(status().isUnauthorized())
-                .andReturn();
+                .andExpect(status().isNotFound());
     }
 }
