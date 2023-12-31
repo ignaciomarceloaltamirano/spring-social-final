@@ -9,6 +9,7 @@ import com.example.demo.entity.Token;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
 import com.example.demo.enumeration.ERole;
+import com.example.demo.exception.TokenRefreshException;
 import com.example.demo.exception.UserAlreadyExistsException;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.TokenRepository;
@@ -39,7 +40,6 @@ public class AuthenticationService {
     private final RoleRepository roleRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    //    private final RefreshTokenService refreshTokenService;
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final IFileUploadService fileUploadService;
@@ -129,84 +129,9 @@ public class AuthenticationService {
                         .build();
             }
         }
-        return null;
+        throw new TokenRefreshException(refreshToken, "Refresh token is not in database");
+//        return null;
     }
-
-//    public LoginResponseDto login(UserLoginRequestDto userLoginRequestDto) {
-//        SecurityContext context = SecurityContextHolder.createEmptyContext();
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(
-//                        userLoginRequestDto.getUsername(),
-//                        userLoginRequestDto.getPassword()
-//                )
-//        );
-//        context.setAuthentication(authentication);
-//
-//        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-//        String jwtToken = jwtService.generateToken(userDetails);
-//        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-//
-//        List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-//                .collect(Collectors.toList());
-//
-//        User user = userRepository.findById(userDetails.getId()).get();
-//
-//        return LoginResponseDto.builder()
-//                .id(userDetails.getId())
-//                .email(userDetails.getEmail())
-//                .roles(roles)
-//                .username(userDetails.getUsername())
-//                .imageUrl(user.getImageUrl())
-//                .refreshToken(refreshToken.getToken())
-//                .accessToken(jwtToken)
-//                .build();
-//    }
-
-//    public ResponseEntity<MessageDto> logout() {
-//        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        System.out.println("PRINCIPAL FROM LOGOUT: " + principal.toString());
-//        if (!Objects.equals(principal.toString(), "anonymousUser")) {
-//            Long userId = ((UserDetailsImpl) principal).getId();
-//            refreshTokenService.deleteByUser(userId);
-//            return ResponseEntity.status(HttpStatus.NO_CONTENT)
-//                    .body(new MessageDto("You've been logged out"));
-//        }
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                .body(new MessageDto("Log out failed"));
-//    }
-
-//    public ResponseEntity<?> refreshToken(RefreshTokenRequestDto request) {
-//        String refreshToken = request.getRefreshToken();
-//
-//        if ((refreshToken != null) && (!refreshToken.isEmpty())) {
-//            return refreshTokenService.findByToken(refreshToken)
-//                    .map(refreshTokenService::verifyExpiration)
-//                    .map(RefreshToken::getUser)
-//                    .map(user -> {
-//                        String token = jwtService.generateJwtFromUsername(user.getEmail());
-//                    return ResponseEntity.ok(TokenRefreshResponseDto.builder()
-//                            .accessToken(token).refreshToken(refreshToken).build());
-//                    })
-//                    .orElseThrow(() -> new TokenRefreshException(refreshToken,
-//                            "Refresh token is not in database!"));
-//        }
-//
-//        return ResponseEntity.badRequest().body(new MessageDto("Refresh Token is empty!"));
-//    }
-//    public ResponseEntity<TokenRefreshResponseDto> refreshToken(RefreshTokenRequestDto request) {
-//        String requestRefreshToken = request.getRefreshToken();
-//        return refreshTokenService.findByToken(requestRefreshToken)
-//                .map(refreshTokenService::verifyExpiration)
-//                .map(RefreshToken::getUser)
-//                .map(user -> {
-////                    String token = jwtService.generateJwtFromUsername(user.getUsername());
-//                    String token = jwtService.generateJwtFromUserId(user.getId());
-//                    return ResponseEntity.ok(TokenRefreshResponseDto.builder()
-//                            .accessToken(token).refreshToken(requestRefreshToken).build());
-//                })
-//                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
-//                        "Refresh token is not in database. Please make a new log in."));
-//    }
 
     private Set<Role> assignUserRoles(User user) {
         Set<Role> roles = new HashSet<>();
@@ -226,7 +151,6 @@ public class AuthenticationService {
     }
 
     private User createUser(UserRegisterRequestDto userRegisterRequestDto, MultipartFile file) throws IOException {
-
         User user = User.builder()
                 .username(userRegisterRequestDto.getUsername())
                 .email(userRegisterRequestDto.getEmail())

@@ -67,37 +67,4 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
-
-//    @Override
-//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-//            throws ServletException, IOException {
-//        try {
-//            String jwt = parseJwt(request);
-//            if (jwt != null && jwtService.isJwtValid(jwt)) {
-//                String username = jwtService.getUsernameFromJwt(jwt);
-//                UserDetails userDetails = userDetailsService.loadUserByUsername((username));
-//                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-//                        userDetails,
-//                        null,
-//                        userDetails.getAuthorities()
-//                );
-//                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//                SecurityContextHolder.getContext().setAuthentication(auth);
-//                Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//                System.out.println("PRINCIPAL FROM FILTER: " + principal.toString());
-//            }
-//        } catch (Exception e) {
-//            logger.error("Cannot set user authentication: " + e.getMessage());
-//        }
-//        filterChain.doFilter(request, response);
-//    }
-//
-//    private String parseJwt(HttpServletRequest request) {
-//        String headerAuth = request.getHeader("Authorization");
-//
-//        if (StringUtils.hasText(headerAuth)) {
-//            return (headerAuth.split(" ")[1].trim());
-//        }
-//        return null;
-//    }
 }

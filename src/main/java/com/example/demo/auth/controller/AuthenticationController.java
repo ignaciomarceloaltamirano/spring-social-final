@@ -6,6 +6,10 @@ import com.example.demo.auth.dto.response.LoginResponseDto;
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.auth.dto.response.TokenRefreshResponseDto;
 import com.example.demo.auth.service.AuthenticationService;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.ConsumptionProbe;
+import io.github.bucket4j.Refill;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,12 +21,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 @Tag(name = "Authentication", description = "Endpoints related to user authentication")
 @RestController
@@ -30,6 +36,16 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
+    private final Bucket bucket;
+
+//    public AuthenticationController(AuthenticationService authenticationService, Bucket bucket) {
+//        this.authenticationService = authenticationService;
+//
+//        long capacity = 5;
+//        Refill refill = Refill.greedy(10, Duration.ofSeconds(5));
+//        Bandwidth limit = Bandwidth.classic(capacity, refill);
+//        this.bucket = Bucket.builder().addLimit(limit).build();
+//    }
 
     @Operation(summary = "Register a user")
     @ApiResponses(value = {
@@ -89,43 +105,15 @@ public class AuthenticationController {
     public ResponseEntity<TokenRefreshResponseDto> refreshToken(
             HttpServletRequest request, HttpServletResponse response
     ) throws IOException {
-        return ResponseEntity.ok(authenticationService.refreshToken(request, response));
+        ConsumptionProbe probe = this.bucket.tryConsumeAndReturnRemaining(1);
+        if (probe.isConsumed()) {
+            return ResponseEntity.ok()
+                    .header("X-Rate-Limit-Remaining", Long.toString(probe.getRemainingTokens()))
+                    .body(authenticationService.refreshToken(request, response));
+        }
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("X-Rate-Limit-Retry-After-Milliseconds",
+                        Long.toString(TimeUnit.NANOSECONDS.toMillis(probe.getNanosToWaitForRefill())))
+                .build();
     }
-
-//    @Operation(summary = "Log a user out")
-//    @ApiResponses(value = {
-//            @ApiResponse(
-//                    responseCode = "204",
-//                    description = "User successfully logged out",
-//                    content = {@Content(
-//                            mediaType = "application/json", schema = @Schema(implementation = MessageDto.class))
-//                    }
-//            ),
-//            @ApiResponse(
-//                    responseCode = "400",
-//                    description = "Bad request"),
-//    })
-//    @PostMapping("/logout")
-//    public ResponseEntity<MessageDto> logout() {
-//        return authenticationService.logout();
-//    }
-
-//    @Operation(summary = "Refresh JWT")
-//    @ApiResponses(value = {
-//            @ApiResponse(
-//                    responseCode = "200",
-//                    description = "Token successfully refreshed",
-//                    content = {@Content(
-//                            mediaType = "application/json", schema = @Schema(implementation = TokenRefreshResponseDto.class))
-//                    }
-//            ),
-//            @ApiResponse(
-//                    responseCode = "403",
-//                    description = "Refresh token is not in database"),
-//    })
-//    @PostMapping("/refreshtoken")
-//    public ResponseEntity<?> refreshToken(
-//            @Valid @RequestBody RefreshTokenRequestDto request) throws IOException {
-//        return authenticationService.refreshToken(request);
-//    }
 }
