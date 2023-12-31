@@ -13,7 +13,7 @@ public class UtilServiceImpl implements IUtilService {
     private final UserRepository userRepository;
 
     public User getCurrentUser() {
-        String username= SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByUsername(username).get();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(username).get();
     }
 }

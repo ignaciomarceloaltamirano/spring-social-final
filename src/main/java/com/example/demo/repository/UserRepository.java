@@ -17,6 +17,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
     @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM User u JOIN u.savedPosts p WHERE u.id = :userId AND p.id = :postId")
     boolean isPostSavedByUser(@Param("userId") Long userId, @Param("postId") Long postId);
     Optional<User> findByUsername(String username);
+    Optional<User> findByEmail(String email);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
 }

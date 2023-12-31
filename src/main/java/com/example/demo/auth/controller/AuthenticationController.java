@@ -1,6 +1,5 @@
 package com.example.demo.auth.controller;
 
-import com.example.demo.auth.dto.request.RefreshTokenRequestDto;
 import com.example.demo.auth.dto.request.UserLoginRequestDto;
 import com.example.demo.auth.dto.request.UserRegisterRequestDto;
 import com.example.demo.auth.dto.response.LoginResponseDto;
@@ -14,6 +13,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -45,7 +46,7 @@ public class AuthenticationController {
     })
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageDto> register(
-            @RequestPart("user") @Parameter(schema =@Schema(type = "string", format = "binary")) @Valid UserRegisterRequestDto userRegisterRequestDto,
+            @RequestPart("user") @Parameter(schema = @Schema(type = "string", format = "binary")) @Valid UserRegisterRequestDto userRegisterRequestDto,
             @RequestPart(value = "image", required = false) MultipartFile file
     ) throws IOException {
         return ResponseEntity.ok(authenticationService.register(userRegisterRequestDto, file));
@@ -74,25 +75,6 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.login(userLoginRequestDto));
     }
 
-
-    @Operation(summary = "Log a user out")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "User successfully logged out",
-                    content = {@Content(
-                            mediaType = "application/json", schema = @Schema(implementation = MessageDto.class))
-                    }
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Bad request"),
-    })
-    @PostMapping("/logout")
-    public ResponseEntity<MessageDto> logout() {
-        return authenticationService.logout();
-    }
-
     @Operation(summary = "Refresh JWT")
     @ApiResponses(value = {
             @ApiResponse(
@@ -101,14 +83,49 @@ public class AuthenticationController {
                     content = {@Content(
                             mediaType = "application/json", schema = @Schema(implementation = TokenRefreshResponseDto.class))
                     }
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Refresh token is not in database"),
+            )
     })
-    @PostMapping("/refreshtoken")
+    @PostMapping("/refresh-token")
     public ResponseEntity<TokenRefreshResponseDto> refreshToken(
-            @Valid @RequestBody RefreshTokenRequestDto request) throws IOException {
-        return authenticationService.refreshToken(request);
+            HttpServletRequest request, HttpServletResponse response
+    ) throws IOException {
+        return ResponseEntity.ok(authenticationService.refreshToken(request, response));
     }
+
+//    @Operation(summary = "Log a user out")
+//    @ApiResponses(value = {
+//            @ApiResponse(
+//                    responseCode = "204",
+//                    description = "User successfully logged out",
+//                    content = {@Content(
+//                            mediaType = "application/json", schema = @Schema(implementation = MessageDto.class))
+//                    }
+//            ),
+//            @ApiResponse(
+//                    responseCode = "400",
+//                    description = "Bad request"),
+//    })
+//    @PostMapping("/logout")
+//    public ResponseEntity<MessageDto> logout() {
+//        return authenticationService.logout();
+//    }
+
+//    @Operation(summary = "Refresh JWT")
+//    @ApiResponses(value = {
+//            @ApiResponse(
+//                    responseCode = "200",
+//                    description = "Token successfully refreshed",
+//                    content = {@Content(
+//                            mediaType = "application/json", schema = @Schema(implementation = TokenRefreshResponseDto.class))
+//                    }
+//            ),
+//            @ApiResponse(
+//                    responseCode = "403",
+//                    description = "Refresh token is not in database"),
+//    })
+//    @PostMapping("/refreshtoken")
+//    public ResponseEntity<?> refreshToken(
+//            @Valid @RequestBody RefreshTokenRequestDto request) throws IOException {
+//        return authenticationService.refreshToken(request);
+//    }
 }

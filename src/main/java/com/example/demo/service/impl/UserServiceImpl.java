@@ -69,10 +69,6 @@ public class UserServiceImpl implements IUserService {
                 !Objects.equals(user.getUsername(), updateUserRequestDto.getUsername())) {
             user.setUsername(updateUserRequestDto.getUsername());
         }
-        if (updateUserRequestDto.getEmail() != null &&
-                !Objects.equals(user.getEmail(), updateUserRequestDto.getEmail())) {
-            user.setEmail(updateUserRequestDto.getEmail());
-        }
 
         if (file != null) {
             String imageUrl = fileUploadService.uploadFile(file);
