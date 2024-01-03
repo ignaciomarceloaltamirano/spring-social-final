@@ -63,7 +63,7 @@ public class UserRepositoryTests {
                 .build();
         userRepository.save(newUser);
 
-        User retrievedUser = userRepository.findById(newUser.getId()).get();
+        User retrievedUser = userRepository.findById(newUser.getId()).orElseThrow();
 
         assertThat(retrievedUser).isNotNull();
         assertThat(retrievedUser.getId()).isGreaterThan(0);
@@ -72,7 +72,7 @@ public class UserRepositoryTests {
 
     @Test
     void testFindById_Success() {
-        User retrievedUser = userRepository.findById(user.getId()).get();
+        User retrievedUser = userRepository.findById(user.getId()).orElseThrow();
 
         assertThat(retrievedUser).isNotNull();
         assertThat(retrievedUser.getUsername()).isEqualTo("user1");
@@ -120,7 +120,7 @@ public class UserRepositoryTests {
 
     @Test
     void testFindByUsername() {
-        User retrievedUser = userRepository.findByUsername(user.getUsername()).get();
+        User retrievedUser = userRepository.findByUsername(user.getUsername()).orElseThrow();
 
         assertThat(retrievedUser).isNotNull();
         assertThat(retrievedUser.getUsername()).isEqualTo("user1");
@@ -161,5 +161,7 @@ public class UserRepositoryTests {
         Page<User> usersPage = userRepository.findAll(pageRequest);
 
         assertThat(usersPage).isNotNull();
+        assertThat(usersPage.getContent()).isNotNull();
+        assertThat(usersPage.getTotalPages()).isGreaterThan(0);
     }
 }

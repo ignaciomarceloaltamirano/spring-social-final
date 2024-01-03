@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.auth.dto.response.MessageDto;
-import com.example.demo.dto.request.CommentRequestDto;
 import com.example.demo.dto.request.VoteRequestDto;
 import com.example.demo.dto.response.VoteResponseDto;
 import com.example.demo.entity.*;
@@ -20,11 +19,13 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -40,11 +41,13 @@ public class VoteServiceTests {
     private IUtilService utilService;
     @Spy
     private ModelMapper modelMapper;
+
     @InjectMocks
     private VoteServiceImpl voteService;
 
     private User user;
     private Vote vote;
+    private Post post;
 
     @BeforeEach
     void setup() {
@@ -55,7 +58,7 @@ public class VoteServiceTests {
                 .password("test")
                 .build();
 
-        Post post = Post.builder().id(1L).build();
+        post = Post.builder().id(1L).build();
 
         vote = Vote.builder()
                 .id(1L)
@@ -63,6 +66,65 @@ public class VoteServiceTests {
                 .type(EVoteType.UPVOTE)
                 .post(post)
                 .build();
+    }
+
+    @Test
+    void testGetCurrentVote_Success() {
+        given(utilService.getCurrentUser()).willReturn(user);
+        given(postRepository.findById(anyLong())).willReturn(Optional.of(post));
+        given(voteRepository.findByUserIdAndPostId(anyLong(), anyLong()))
+                .willReturn(vote);
+
+        VoteResponseDto result = voteService.getCurrentVote(1L);
+
+        assertNotNull(result);
+        verify(postRepository, times(1)).findById(anyLong());
+        verify(voteRepository, times(1)).findByUserIdAndPostId(anyLong(), anyLong());
+    }
+
+    @Test
+    void testGetCurrentVote_WhenPostNotFound_ThrowsResourceNotFoundException() {
+        given(postRepository.findById(anyLong())).willReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class, () -> voteService.getCurrentVote(1L));
+
+        verify(postRepository, times(1)).findById(anyLong());
+        assertThat(exception.getMessage()).contains("Post not found");
+    }
+
+    @Test
+    void testGetCurrentVote_WhenPostVoteNotFound_ReturnsNull() {
+        given(utilService.getCurrentUser()).willReturn(user);
+        given(postRepository.findById(anyLong())).willReturn(Optional.of(post));
+        given(voteRepository.findByUserIdAndPostId(anyLong(), anyLong())).willReturn(null);
+
+        VoteResponseDto result = voteService.getCurrentVote(1L);
+
+        assertThat(result).isNull();
+        verify(postRepository, times(1)).findById(anyLong());
+        verify(voteRepository, times(1)).findByUserIdAndPostId(anyLong(), anyLong());
+    }
+
+    @Test
+    void testGetPostVotes_Success() {
+        given(voteRepository.findAllByPostId(anyLong())).willReturn(List.of(vote));
+
+        List<VoteResponseDto> result = voteService.getPostVotes(1L);
+
+        assertNotNull(result);
+        assertThat(result).isInstanceOf(List.class);
+        verify(voteRepository, times(1)).findAllByPostId(anyLong());
+    }
+
+    @Test
+    void testGetPostVotes_WhenPostNotFound_ReturnsEmptyArray() {
+        given(voteRepository.findAllByPostId(anyLong())).willReturn(new ArrayList<>());
+
+        List<VoteResponseDto> result = voteService.getPostVotes(-1L);
+
+        verify(voteRepository, times(1)).findAllByPostId(anyLong());
+        assertThat(result.size()).isZero();
     }
 
     @Test

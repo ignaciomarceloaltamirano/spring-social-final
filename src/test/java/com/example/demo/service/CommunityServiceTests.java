@@ -3,12 +3,12 @@ package com.example.demo.service;
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.dto.request.CommunityRequestDto;
 import com.example.demo.dto.response.CommunityResponseDto;
-import com.example.demo.dto.response.PageDto;
 import com.example.demo.entity.Community;
 import com.example.demo.entity.User;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.exception.UnauthorizedUserException;
 import com.example.demo.repository.CommunityRepository;
+import com.example.demo.repository.PostRepository;
 import com.example.demo.service.impl.CommunityServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,11 +18,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +31,8 @@ import static org.mockito.Mockito.*;
 public class CommunityServiceTests {
     @Mock
     private CommunityRepository communityRepository;
+    @Mock
+    private PostRepository postRepository;
     @Mock
     private IUtilService utilService;
     @Spy
@@ -85,6 +82,7 @@ public class CommunityServiceTests {
                 .build();
 
         CommunityResponseDto result = communityService.createCommunity(communityRequestDto);
+
         assertThat(result).isNotNull();
         assertEquals("newcommunity", result.getName());
         verify(communityRepository, times(1)).save(any(Community.class));

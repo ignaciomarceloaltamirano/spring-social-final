@@ -57,8 +57,10 @@ public class CommentVoteRepositoryTests {
         CommentVote newCommentVote = CommentVote.builder()
                 .user(user)
                 .build();
+
         commentVoteRepository.save(newCommentVote);
-        CommentVote retrievedCommentVote = commentVoteRepository.findById(newCommentVote.getId()).get();
+
+        CommentVote retrievedCommentVote = commentVoteRepository.findById(newCommentVote.getId()).orElseThrow();
 
         assertThat(retrievedCommentVote).isNotNull();
         assertThat(retrievedCommentVote.getId()).isGreaterThan(0);
@@ -67,7 +69,7 @@ public class CommentVoteRepositoryTests {
 
     @Test
     void testFindByUserAndComment() {
-        CommentVote retrievedCommentVote = commentVoteRepository.findByUserIdAndCommentId(user.getId(), comment.getId()).get();
+        CommentVote retrievedCommentVote = commentVoteRepository.findByUserIdAndCommentId(user.getId(), comment.getId()).orElseThrow();
 
         assertThat(retrievedCommentVote).isNotNull();
         assertThat(retrievedCommentVote.getUser()).isEqualTo(user);

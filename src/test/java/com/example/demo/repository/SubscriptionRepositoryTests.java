@@ -64,7 +64,7 @@ public class SubscriptionRepositoryTests {
     @Test
     void testFindByCommunityAndUser_Success() {
         Subscription retrievedSubscription = subscriptionRepository.findByCommunityIdAndUserId(
-                community.getId(), user.getId()).get();
+                community.getId(), user.getId()).orElseThrow();
 
         assertThat(retrievedSubscription).isNotNull();
         assertThat(retrievedSubscription.getCommunity().getName()).isEqualTo("testcommunity");
@@ -85,15 +85,14 @@ public class SubscriptionRepositoryTests {
     }
 
     @Test
-    void testExistsByCommunityIdAndUserId() {
+    void testExistsByCommunityIdAndUserId_ReturnsTrue() {
         boolean exists = subscriptionRepository.existsByCommunityIdAndUserId(community.getId(), user.getId());
-        System.out.println(community.getId());
-        System.out.println(user.getId());
+
         assertTrue(exists);
     }
 
     @Test
-    void testDoesNotExistByCommunityIdAndUserId() {
+    void testExistsByCommunityIdAndUserId_ReturnsFalse() {
         boolean exists = subscriptionRepository.existsByCommunityIdAndUserId(-1L, -1L);
         assertFalse(exists);
     }

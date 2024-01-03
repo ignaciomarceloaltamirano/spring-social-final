@@ -26,7 +26,7 @@ public class TagRepositoryTests {
     private Tag tag1;
 
     @BeforeEach
-    void setup(){
+    void setup() {
         tag1 = Tag.builder()
                 .name("test")
                 .build();
@@ -34,15 +34,15 @@ public class TagRepositoryTests {
     }
 
     @Test
-    void testFindByName(){
-        Tag retrievedTag=tagRepository.findByName("test").get();
+    void testFindByName() {
+        Tag retrievedTag = tagRepository.findByName("test").orElseThrow();
 
         assertThat(retrievedTag).isNotNull();
         assertThat(retrievedTag.getName()).isEqualTo("test");
     }
 
     @Test
-    void testSaveAll(){
+    void testSaveAll() {
         Tag tag2 = Tag.builder()
                 .name("test 2")
                 .build();
@@ -54,7 +54,7 @@ public class TagRepositoryTests {
         List<Tag> tags = new ArrayList<>();
         tags.add(tag2);
         tags.add(tag3);
-        List<Tag> savedTags=tagRepository.saveAll(tags);
+        List<Tag> savedTags = tagRepository.saveAll(tags);
 
         assertThat(savedTags.size()).isEqualTo(2);
         assertThat(savedTags.get(0).getName()).isEqualTo("test 2");
@@ -62,13 +62,13 @@ public class TagRepositoryTests {
     }
 
     @Test
-    void testFindTagsWithPosts(){
-        Post post=Post.builder()
+    void testFindTagsWithPosts() {
+        Post post = Post.builder()
                 .tags(Set.of(tag1))
                 .build();
         postRepository.save(post);
 
-        List<Tag> tags=tagRepository.findTagsWihPosts();
+        List<Tag> tags = tagRepository.findTagsWihPosts();
 
         assertThat(tags).isNotNull();
         assertThat(tags.size()).isGreaterThan(0);

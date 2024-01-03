@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateCommentRequestDto {
     @NotEmpty
-    @Size(max = 255)
+    @Size(max = 255,message = "Text must be at most 255 characters long.")
     private String text;
 }
 

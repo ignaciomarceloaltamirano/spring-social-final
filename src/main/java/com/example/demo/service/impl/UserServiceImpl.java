@@ -49,6 +49,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public MessageDto updatePassword(UpdatePasswordRequestDto request) {
         var user = utilService.getCurrentUser();
+
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new IllegalStateException("Wrong password.");
         }

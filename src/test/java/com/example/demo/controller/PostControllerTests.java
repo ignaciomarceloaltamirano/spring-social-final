@@ -5,12 +5,12 @@ import com.example.demo.auth.service.JwtService;
 import com.example.demo.auth.service.UserDetailsServiceImpl;
 import com.example.demo.dto.request.UpdatePostRequestDto;
 import com.example.demo.dto.request.PostRequestDto;
-import com.example.demo.dto.response.DeletePostResponseDto;
 import com.example.demo.dto.response.PageDto;
 import com.example.demo.dto.response.PostResponseDto;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.repository.TokenRepository;
+import com.example.demo.service.IPostService;
 import com.example.demo.service.IUtilService;
-import com.example.demo.service.impl.PostServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PostController.class)
-@WithMockUser(username = "user", password = "test", roles = {"USER", "MOD", "ADMIN"})
+@WithMockUser(username = "user", password = "test", roles = "USER")
 @AutoConfigureMockMvc(addFilters = false)
 public class PostControllerTests {
     @Autowired
@@ -46,31 +46,17 @@ public class PostControllerTests {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private PostServiceImpl postService;
+    private IPostService postService;
     @MockBean
     private ModelMapper modelMapper;
+    @MockBean
+    private TokenRepository tokenRepository;
     @MockBean
     private JwtService jwtService;
     @MockBean
     private IUtilService utilService;
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
-
-    @Test
-    public void testGetPosts() throws Exception {
-        given(postService.getPosts(anyInt()))
-                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1, 1));
-
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/posts/page/{page}", 1)
-                .accept(MediaType.APPLICATION_JSON);
-
-        mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.currentPage").exists())
-                .andExpect(jsonPath("$.totalPages").isNotEmpty());
-    }
 
     @Test
     public void testGetPost() throws Exception {
@@ -158,37 +144,55 @@ public class PostControllerTests {
                 .andExpect(jsonPath("$.totalPages").isNotEmpty());
     }
 
-//    @Test
-//    public void testGetUserUpVotedPosts() throws Exception {
-//        given(postService.getUserUpVotedPosts(userId, anyInt()))
-//                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1, 1));
-//
-//        RequestBuilder requestBuilder = MockMvcRequestBuilders
-//                .get("/posts/upvoted/{userId}/page/{page}", 1, 1)
-//                .accept(MediaType.APPLICATION_JSON);
-//
-//        mockMvc.perform(requestBuilder)
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.content").exists())
-//                .andExpect(jsonPath("$.currentPage").exists())
-//                .andExpect(jsonPath("$.totalPages").isNotEmpty());
-//    }
+    @Test
+    public void testGetUserUpVotedPosts() throws Exception {
+        given(postService.getUserUpVotedPosts(anyLong(), anyInt()))
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1, 1));
 
-//    @Test
-//    public void testGetUserDownVotedPosts() throws Exception {
-//        given(postService.getUserDownVotedPosts(userId, anyInt()))
-//                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1, 1));
-//
-//        RequestBuilder requestBuilder = MockMvcRequestBuilders
-//                .get("/posts/downvoted/{userId}/page/{page}", 1, 1)
-//                .accept(MediaType.APPLICATION_JSON);
-//
-//        mockMvc.perform(requestBuilder)
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.content").exists())
-//                .andExpect(jsonPath("$.currentPage").exists())
-//                .andExpect(jsonPath("$.totalPages").isNotEmpty());
-//    }
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/posts/upvoted/{userId}/page/{page}", 1L, 1)
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
+                .andExpect(jsonPath("$.totalPages").isNotEmpty());
+    }
+
+    @Test
+    public void testGetUserUpVotedPosts_WhenUserNotFound_ThrowsResourceNotFoundException() throws Exception {
+        given(postService.getUserUpVotedPosts(anyLong(),anyInt()))
+                .willThrow(new ResourceNotFoundException("User not found"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/posts/upvoted/{userId}/page/{page}", 1L,1))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testGetUserDownVotedPosts() throws Exception {
+        given(postService.getUserDownVotedPosts(anyLong(), anyInt()))
+                .willReturn(new PageDto<>(List.of(new PostResponseDto()), 1, 1));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .get("/posts/downvoted/{userId}/page/{page}", 1, 1)
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.currentPage").exists())
+                .andExpect(jsonPath("$.totalPages").isNotEmpty());
+    }
+
+    @Test
+    public void testGetUserDownVotedPosts_WhenUserNotFound_ThrowsResourceNotFoundException() throws Exception {
+        given(postService.getUserDownVotedPosts(anyLong(),anyInt()))
+                .willThrow(new ResourceNotFoundException("User not found"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/posts/downvoted/{userId}/page/{page}", 1L,1))
+                .andExpect(status().isNotFound());
+    }
 
     @Test
     public void testGetPostsByTag() throws Exception {
@@ -284,7 +288,7 @@ public class PostControllerTests {
                 .contentType(MediaType.MULTIPART_FORM_DATA);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -308,7 +312,7 @@ public class PostControllerTests {
                 .contentType(MediaType.MULTIPART_FORM_DATA);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -422,7 +426,7 @@ public class PostControllerTests {
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -446,7 +450,7 @@ public class PostControllerTests {
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -463,14 +467,14 @@ public class PostControllerTests {
 
     @Test
     public void testDeletePost_Success_ReturnsMessageDto() throws Exception {
-        given(postService.deletePost(anyLong())).willReturn(new DeletePostResponseDto());
+        given(postService.deletePost(anyLong())).willReturn(new MessageDto());
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .delete("/posts/{postId}", 1L)
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
     }
 
     @Test

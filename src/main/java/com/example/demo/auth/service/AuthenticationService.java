@@ -130,8 +130,8 @@ public class AuthenticationService {
             }
         }
         throw new TokenRefreshException(refreshToken, "Refresh token is not in database");
-//        return null;
     }
+
 
     private Set<Role> assignUserRoles(User user) {
         Set<Role> roles = new HashSet<>();

@@ -16,4 +16,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findPostsByTitleOrAuthorContaining(@Param("query") String query, PageRequest pageable);
     @Query("SELECT p FROM Post p WHERE p.community IN (SELECT s.community FROM Subscription s WHERE s.user.id = :userId)")
     Page<Post> findPostsInUserSubscribedCommunities(@Param("userId") Long userId, PageRequest p);
+    void deleteAllByCommunityId(Long communityId);
 }

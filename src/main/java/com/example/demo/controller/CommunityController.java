@@ -50,7 +50,7 @@ public class CommunityController {
                     description = "Found a community",
                     content = {@Content(
                             mediaType = "application/json",
-                            schema = @Schema( implementation = CommunityResponseDto.class))
+                            schema = @Schema(implementation = CommunityResponseDto.class))
                     }
             ),
             @ApiResponse(

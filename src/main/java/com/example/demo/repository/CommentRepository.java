@@ -9,6 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment,Long> {
-    Page<Comment> findAllByPost(Post post, PageRequest p);
+//    Page<Comment> findAllByPost(Post post, PageRequest p);
     List<Comment> findAllByPost(Post post);
 }

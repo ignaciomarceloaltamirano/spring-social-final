@@ -3,16 +3,13 @@ package com.example.demo.controller;
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.dto.request.UpdatePostRequestDto;
 import com.example.demo.dto.request.PostRequestDto;
-import com.example.demo.dto.response.DeletePostResponseDto;
 import com.example.demo.dto.response.PageDto;
 import com.example.demo.dto.response.PostResponseDto;
 import com.example.demo.service.IPostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -55,25 +52,6 @@ public class PostController {
             @PathVariable("postId") Long postId
     ) {
         return ResponseEntity.ok(postService.getPost(postId));
-    }
-
-    @Operation(summary = "Get all posts")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Found a page of posts",
-                    content = {@Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = PageDto.class,
-                                    subTypes = {PostResponseDto.class}))
-                    }
-            )
-    })
-    @GetMapping("/page/{page}")
-    public ResponseEntity<PageDto<PostResponseDto>> getPosts(
-            @PathVariable("page") int page
-    ) {
-        return ResponseEntity.ok(postService.getPosts(page));
     }
 
     @Operation(summary = "Get all user's posts")
@@ -269,7 +247,7 @@ public class PostController {
     @PostMapping(value = "/{communityId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostResponseDto> createPost(
             @PathVariable("communityId") Long communityId,
-            @RequestPart(value = "post") @Parameter(schema =@Schema(type = "string", format = "binary")) @Valid PostRequestDto post,
+            @RequestPart(value = "post") @Parameter(schema = @Schema(type = "string", format = "binary")) @Valid PostRequestDto post,
             @RequestPart(value = "image", required = false) MultipartFile file
     ) throws IOException {
         return ResponseEntity.status(HttpStatus.CREATED).body(postService.createPost(post, communityId, file));
@@ -285,6 +263,10 @@ public class PostController {
                     }
             ),
             @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized"
+            ),
+            @ApiResponse(
                     responseCode = "404",
                     description = "Post not found"
             )
@@ -292,7 +274,7 @@ public class PostController {
     @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostResponseDto> updatePost(
             @PathVariable("postId") Long postId,
-            @RequestPart(value = "post", required = false) @Parameter(schema =@Schema(type = "string", format = "binary")) @Valid UpdatePostRequestDto updatePostRequestDto,
+            @RequestPart(value = "post", required = false) @Parameter(schema = @Schema(type = "string", format = "binary")) @Valid UpdatePostRequestDto updatePostRequestDto,
             @RequestPart(value = "image", required = false) MultipartFile file
     ) throws IOException {
         return ResponseEntity.ok(postService.updatePost(updatePostRequestDto, postId, file));
@@ -346,8 +328,12 @@ public class PostController {
                     responseCode = "204",
                     description = "Deleted a post",
                     content = {@Content(
-                            mediaType = "application/json", schema = @Schema(implementation = DeletePostResponseDto.class))
+                            mediaType = "application/json", schema = @Schema(implementation = MessageDto.class))
                     }
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized"
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -355,7 +341,7 @@ public class PostController {
             )
     })
     @DeleteMapping("/{postId}")
-    public ResponseEntity<DeletePostResponseDto> deletePost(
+    public ResponseEntity<MessageDto> deletePost(
             @PathVariable("postId") Long postId
     ) {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(postService.deletePost(postId));

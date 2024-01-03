@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CommunityRequestDto {
     @NotEmpty(message = "Name must not be empty.")
-    @Size(min = 3, max = 120, message = "Size must be between 3 and 120 characters long.")
+    @Size(min = 3, max = 120, message = "Name must be between 3 and 120 characters long.")
     private String name;
 }
 

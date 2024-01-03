@@ -3,7 +3,6 @@ package com.example.demo.service.impl;
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.dto.request.UpdatePostRequestDto;
 import com.example.demo.dto.request.PostRequestDto;
-import com.example.demo.dto.response.DeletePostResponseDto;
 import com.example.demo.dto.response.PageDto;
 import com.example.demo.dto.response.PostResponseDto;
 import com.example.demo.entity.Community;
@@ -11,6 +10,7 @@ import com.example.demo.entity.Post;
 import com.example.demo.entity.Tag;
 import com.example.demo.entity.User;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.exception.UnauthorizedUserException;
 import com.example.demo.repository.*;
 import com.example.demo.service.IFileUploadService;
 import com.example.demo.service.IPostService;
@@ -233,8 +233,15 @@ public class PostServiceImpl implements IPostService {
 
     @Transactional
     public PostResponseDto updatePost(@Valid UpdatePostRequestDto postRequestDto, Long postId, MultipartFile file) throws IOException {
+        User user = utilService.getCurrentUser();
+
         Post postToUpdate = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found."));
+
+        if (user != postToUpdate.getAuthor()) {
+            throw new UnauthorizedUserException("Not authorized.");
+        }
+
         Set<Tag> tags = new HashSet<>();
         List<Tag> newTags = new ArrayList<>();
 
@@ -275,10 +282,17 @@ public class PostServiceImpl implements IPostService {
         return modelMapper.map(postToUpdate, PostResponseDto.class);
     }
 
-    public DeletePostResponseDto deletePost(Long postId) {
+    public MessageDto deletePost(Long postId) {
+        User user = utilService.getCurrentUser();
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found."));
+
+        if (user != post.getAuthor()) {
+            throw new UnauthorizedUserException("Not authorized.");
+        }
+
         postRepository.delete(post);
-        return new DeletePostResponseDto(post.getCommunity().getName());
+        return new MessageDto("Post deleted");
     }
 }

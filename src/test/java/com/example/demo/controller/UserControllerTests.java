@@ -8,8 +8,9 @@ import com.example.demo.dto.request.UpdateUserRequestDto;
 import com.example.demo.dto.response.UpdateUserResponseDto;
 import com.example.demo.dto.response.UserProfileResponseDto;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.repository.TokenRepository;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.service.impl.UserServiceImpl;
+import com.example.demo.service.IUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
@@ -35,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@WithMockUser(username = "user", password = "test", roles = {"USER", "MOD", "ADMIN"})
+@WithMockUser(username = "user", password = "test", roles = "USER")
 @AutoConfigureMockMvc(addFilters = false)
 public class UserControllerTests {
     @Autowired
@@ -45,9 +46,11 @@ public class UserControllerTests {
     @MockBean
     private UserRepository userRepository;
     @MockBean
+    private TokenRepository tokenRepository;
+    @MockBean
     private ModelMapper modelMapper;
     @MockBean
-    private UserServiceImpl userService;
+    private IUserService userService;
     @MockBean
     private JwtService jwtService;
     @MockBean
@@ -153,7 +156,6 @@ public class UserControllerTests {
     public void testUpdateUser_WithImage() throws Exception {
         UpdateUserRequestDto requestDto = new UpdateUserRequestDto();
         requestDto.setUsername("newUsername");
-        requestDto.setEmail("newEmail@example.com");
 
         String userDtoJson=objectMapper.writeValueAsString(requestDto);
 
@@ -177,7 +179,6 @@ public class UserControllerTests {
     public void testUpdateUser_WithoutImage() throws Exception {
         UpdateUserRequestDto requestDto = new UpdateUserRequestDto();
         requestDto.setUsername("newUsername");
-        requestDto.setEmail("newEmail@example.com");
 
         String userDtoJson=objectMapper.writeValueAsString(requestDto);
 

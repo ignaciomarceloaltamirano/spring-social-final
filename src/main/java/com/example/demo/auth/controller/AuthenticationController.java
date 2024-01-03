@@ -6,10 +6,8 @@ import com.example.demo.auth.dto.response.LoginResponseDto;
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.auth.dto.response.TokenRefreshResponseDto;
 import com.example.demo.auth.service.AuthenticationService;
-import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
-import io.github.bucket4j.Refill;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -38,15 +36,6 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final Bucket bucket;
 
-//    public AuthenticationController(AuthenticationService authenticationService, Bucket bucket) {
-//        this.authenticationService = authenticationService;
-//
-//        long capacity = 5;
-//        Refill refill = Refill.greedy(10, Duration.ofSeconds(5));
-//        Bandwidth limit = Bandwidth.classic(capacity, refill);
-//        this.bucket = Bucket.builder().addLimit(limit).build();
-//    }
-
     @Operation(summary = "Register a user")
     @ApiResponses(value = {
             @ApiResponse(
@@ -65,7 +54,7 @@ public class AuthenticationController {
             @RequestPart("user") @Parameter(schema = @Schema(type = "string", format = "binary")) @Valid UserRegisterRequestDto userRegisterRequestDto,
             @RequestPart(value = "image", required = false) MultipartFile file
     ) throws IOException {
-        return ResponseEntity.ok(authenticationService.register(userRegisterRequestDto, file));
+        return ResponseEntity.status(HttpStatus.CREATED).body(authenticationService.register(userRegisterRequestDto, file));
     }
 
     @Operation(summary = "Log a user in")
@@ -91,7 +80,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.login(userLoginRequestDto));
     }
 
-    @Operation(summary = "Refresh JWT")
+    @Operation(summary = "Refresh Jwt")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
