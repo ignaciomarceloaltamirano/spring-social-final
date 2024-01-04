@@ -20,16 +20,16 @@ public class SearchServiceImpl implements ISearchService {
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
 
-    public PageDto<PostResponseDto> getPostsByTitleOrAuthor(String query,int page) {
+    public PageDto<PostResponseDto> getPostsByTitleOrAuthor(String query, int page) {
         Sort s = Sort.by("id").descending();
 
-        Page<Post>pageRequest=postRepository.findPostsByTitleOrAuthorContaining(query, PageRequest.of(page - 1, 6, s));
+        Page<Post> pageRequest = postRepository.findPostsByTitleOrAuthorContaining(query, PageRequest.of(page - 1, 6, s));
         int totalPages = pageRequest.getTotalPages();
         int currentPage = pageRequest.getNumber() + 1;
 
         List<PostResponseDto> content = pageRequest
                 .getContent().stream().map(
                         post -> modelMapper.map(post, PostResponseDto.class)).toList();
-        return new PageDto<>(content, totalPages,currentPage);
+        return new PageDto<>(content, totalPages, currentPage);
     }
 }

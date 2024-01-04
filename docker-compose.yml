@@ -8,7 +8,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DATABASE_URL=jdbc:postgresql://postgres_db:5432/test_jwt_new
+      - DATABASE_URL=jdbc:postgresql://postgres_db:5432/social
       - DATABASE_USERNAME=postgres
       - DATABASE_PASSWORD=reze
     depends_on:
@@ -23,7 +23,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: reze
-      POSTGRES_DB: test_jwt_new
+      POSTGRES_DB: social
     healthcheck:
       test: ["CMD-SHELL","pg_isready -U postgres"]
       interval: 10s

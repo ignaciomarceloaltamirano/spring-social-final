@@ -104,6 +104,10 @@ public class CommentController {
                     }
             ),
             @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized"
+            ),
+            @ApiResponse(
                     responseCode = "404",
                     description = "Comment not found"
             )

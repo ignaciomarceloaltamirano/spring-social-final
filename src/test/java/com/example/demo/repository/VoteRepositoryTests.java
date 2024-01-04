@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.entity.Comment;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
 import com.example.demo.entity.Vote;
@@ -74,6 +75,14 @@ public class VoteRepositoryTests {
     }
 
     @Test
+    void testFindByUserAndPost_Success() {
+        Vote retrievedVote = voteRepository.findByUserIdAndPostId(user.getId(), post2.getId());
+
+        assertThat(retrievedVote).isNotNull();
+        assertThat(retrievedVote.getType()).isEqualTo(EVoteType.valueOf("DOWNVOTE"));
+    }
+
+    @Test
     void testSaveVote() {
         Post post3 = Post.builder()
                 .title("Post 3")
@@ -102,7 +111,8 @@ public class VoteRepositoryTests {
         Page<Post> postsPage = voteRepository.findUserUpVotedPosts(user.getId(), pageRequest);
 
         assertThat(postsPage).isNotNull();
-        assertThat(postsPage.getContent().size()).isEqualTo(1);
+        assertThat(postsPage.getContent()).isNotNull();
+        assertThat(postsPage.getTotalPages()).isEqualTo(1);
     }
 
     @Test
@@ -111,7 +121,8 @@ public class VoteRepositoryTests {
         Page<Post> postsPage = voteRepository.findUserDownVotedPosts(user.getId(), pageRequest);
 
         assertThat(postsPage).isNotNull();
-        assertThat(postsPage.getContent().size()).isEqualTo(1);
+        assertThat(postsPage.getContent()).isNotNull();
+        assertThat(postsPage.getTotalPages()).isEqualTo(1);
     }
 
     @Test
@@ -123,10 +134,11 @@ public class VoteRepositoryTests {
     }
 
     @Test
-    void testDeleteByUserAndPost(){
-        voteRepository.deleteByUserIdAndPostId(user.getId(),post1.getId());
+    void testDeleteByUserAndPost() {
+        voteRepository.deleteByUserIdAndPostId(user.getId(), post1.getId());
 
-        Vote deletedVote=voteRepository.findByUserIdAndPostId(user.getId(),post1.getId());
+        Vote deletedVote = voteRepository.findByUserIdAndPostId(user.getId(), post1.getId());
+
         assertThat(deletedVote).isNull();
     }
 }

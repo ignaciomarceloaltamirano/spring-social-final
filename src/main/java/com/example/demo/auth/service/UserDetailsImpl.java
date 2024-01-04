@@ -23,9 +23,9 @@ public class UserDetailsImpl implements UserDetails {
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
 
-    public static UserDetailsImpl build(User user){
-        List<SimpleGrantedAuthority>authorities=user.getRoles().stream().map(
-                role->new SimpleGrantedAuthority(role.getName().name())).toList();
+    public static UserDetailsImpl build(User user) {
+        List<SimpleGrantedAuthority> authorities = user.getRoles().stream().map(
+                role -> new SimpleGrantedAuthority(role.getName().name())).toList();
         return new UserDetailsImpl(
                 user.getId(),
                 user.getUsername(),
@@ -33,6 +33,11 @@ public class UserDetailsImpl implements UserDetails {
                 user.getPassword(),
                 authorities
         );
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
     }
 
     @Override

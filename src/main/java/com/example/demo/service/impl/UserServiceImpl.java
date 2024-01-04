@@ -49,6 +49,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public MessageDto updatePassword(UpdatePasswordRequestDto request) {
         var user = utilService.getCurrentUser();
+
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new IllegalStateException("Wrong password.");
         }
@@ -69,13 +70,9 @@ public class UserServiceImpl implements IUserService {
                 !Objects.equals(user.getUsername(), updateUserRequestDto.getUsername())) {
             user.setUsername(updateUserRequestDto.getUsername());
         }
-        if (updateUserRequestDto.getEmail() != null &&
-                !Objects.equals(user.getEmail(), updateUserRequestDto.getEmail())) {
-            user.setEmail(updateUserRequestDto.getEmail());
-        }
 
         if (file != null) {
-            String imageUrl = fileUploadService.uploadFile(file);
+            String imageUrl = fileUploadService.uploadUserImageFile(file);
             user.setImageUrl(imageUrl);
         }
 

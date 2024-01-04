@@ -2,9 +2,12 @@ package com.example.demo.service;
 
 import com.example.demo.dto.response.CommunityResponseDto;
 import com.example.demo.dto.response.PageDto;
+import com.example.demo.dto.response.PostResponseDto;
 import com.example.demo.entity.Community;
+import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
 import com.example.demo.repository.CommunityRepository;
+import com.example.demo.repository.PostRepository;
 import com.example.demo.service.impl.SearchServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,20 +31,21 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 public class SearchServiceTests {
     @Mock
-    private CommunityRepository communityRepository;
+    private PostRepository postRepository;
     @Spy
     private ModelMapper modelMapper;
     @InjectMocks
     private SearchServiceImpl searchService;
 
-//    @Test
-//    void testGetAllCommunities() {
-//        Page<Community> page = new PageImpl<>(Collections.singletonList(new Community()));
-//        given(communityRepository.findAllByNameContaining(anyString(),any(PageRequest.class))).willReturn(page);
-//
-//        PageDto<CommunityResponseDto> result = searchService.getCommunitiesByName("test", 1);
-//        assertThat(result).isNotNull();
-//        verify(communityRepository, times(1)).findAllByNameContaining(anyString(),any(PageRequest.class));
-//        assertThat(result).isInstanceOf(PageDto.class);
-//    }
+    @Test
+    void testGetPostsByTitleOrAuthor() {
+        Page<Post> page = new PageImpl<>(Collections.singletonList(new Post()));
+        given(postRepository.findPostsByTitleOrAuthorContaining(anyString(),any(PageRequest.class))).willReturn(page);
+
+        PageDto<PostResponseDto> result = searchService.getPostsByTitleOrAuthor("test", 1);
+
+        assertThat(result).isNotNull();
+        verify(postRepository, times(1)).findPostsByTitleOrAuthorContaining(anyString(),any(PageRequest.class));
+        assertThat(result).isInstanceOf(PageDto.class);
+    }
 }

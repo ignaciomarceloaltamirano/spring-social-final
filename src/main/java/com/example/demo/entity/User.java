@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -26,7 +27,6 @@ public class User {
     private String password;
     private String imageUrl;
 
-    //    @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.PERSIST)
     @ManyToMany
     @JoinTable(
             name = "user_roles",

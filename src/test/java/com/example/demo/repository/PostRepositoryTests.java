@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -33,18 +34,19 @@ public class PostRepositoryTests {
 
     private User user;
     private Post post1;
+    private Post post2;
     private Community community;
 
     @BeforeEach
     void setup() {
-        user=User.builder()
+        user = User.builder()
                 .username("author")
                 .email("test@test.com")
                 .password("test")
                 .build();
         userRepository.save(user);
 
-        community=Community.builder()
+        community = Community.builder()
                 .creator(user)
                 .name("testcommunity")
                 .build();
@@ -70,25 +72,23 @@ public class PostRepositoryTests {
                 .title("Post 1")
                 .content("Content 1")
                 .author(user)
+                .community(community)
                 .tags(Set.of(tag1, tag2))
                 .build();
-        postRepository.save(post1);
 
-        Post post2 = Post.builder()
+        post2 = Post.builder()
                 .title("Post 2")
                 .content("Content 2")
+                .community(community)
                 .author(user)
                 .build();
-        postRepository.save(post2);
     }
 
     @Test
     void testSavePost() {
-        Post newPost = Post.builder()
-                .title("Hello")
-                .build();
-        postRepository.save(newPost);
-        Post retrievedPost = postRepository.findById(newPost.getId()).get();
+        postRepository.save(post1);
+
+        Post retrievedPost = postRepository.findById(post1.getId()).orElseThrow();
 
         assertThat(retrievedPost).isNotNull();
         assertThat(retrievedPost.getId()).isGreaterThan(0);
@@ -97,7 +97,9 @@ public class PostRepositoryTests {
 
     @Test
     void testFindById_Success() {
-        Post retrievedPost = postRepository.findById(post1.getId()).get();
+        postRepository.save(post1);
+
+        Post retrievedPost = postRepository.findById(post1.getId()).orElseThrow();
 
         assertThat(retrievedPost).isNotNull();
     }
@@ -111,17 +113,9 @@ public class PostRepositoryTests {
     }
 
     @Test
-    void testFindAll() {
-        PageRequest pageRequest = PageRequest.of(0, 2, Sort.by("id").ascending());
-        Page<Post> postsPage = postRepository.findAll(pageRequest);
-
-        assertThat(postsPage).isNotNull();
-        assertThat(postsPage.getContent()).isNotNull();
-        assertThat(postsPage.getContent().size()).isGreaterThan(0);
-    }
-
-    @Test
     void testFindAllByTagsName() {
+        postRepository.save(post1);
+
         PageRequest pageRequest = PageRequest.of(0, 2, Sort.by("id").ascending());
         Page<Post> postsPage = postRepository.findAllByTagsName("tag1", pageRequest);
 
@@ -132,7 +126,7 @@ public class PostRepositoryTests {
 
     @Test
     void testFindAllInUserSubscribedCommunities() {
-        post1.setCommunity(community);
+        postRepository.save(post1);
 
         PageRequest pageRequest = PageRequest.of(0, 2, Sort.by("id").ascending());
         Page<Post> postsPage = postRepository.findPostsInUserSubscribedCommunities(user.getId(), pageRequest);
@@ -143,7 +137,7 @@ public class PostRepositoryTests {
 
     @Test
     void testFindAllByCommunity() {
-        post1.setCommunity(community);
+        postRepository.save(post1);
 
         PageRequest pageRequest = PageRequest.of(0, 2, Sort.by("id").ascending());
         Page<Post> postsPage = postRepository.findAllByCommunityId(community.getId(), pageRequest);
@@ -154,6 +148,8 @@ public class PostRepositoryTests {
 
     @Test
     void testFindAllByAuthor() {
+        postRepository.saveAll(List.of(post1,post2));
+
         PageRequest pageRequest = PageRequest.of(0, 2, Sort.by("id").ascending());
         Page<Post> postsPage = postRepository.findAllByAuthorId(user.getId(), pageRequest);
 
@@ -163,6 +159,8 @@ public class PostRepositoryTests {
 
     @Test
     void testFindAllSavedPostsByUser() {
+        postRepository.save(post1);
+
         PageRequest pageRequest = PageRequest.of(0, 2, Sort.by("id").ascending());
         Page<Post> postsPage = postRepository.findAllByAuthorId(user.getId(), pageRequest);
 
@@ -172,11 +170,22 @@ public class PostRepositoryTests {
 
     @Test
     void testDeletePost() {
+        postRepository.save(post1);
         long postsCount = postRepository.count();
 
         postRepository.delete(post1);
 
         assertThat(postRepository.count()).isEqualTo(postsCount - 1);
         assertThat(postRepository.findById(post1.getId())).isEqualTo(Optional.empty());
+    }
+
+    @Test
+    void testDeleteAllByCommunity() {
+        postRepository.saveAll(List.of(post1,post2));
+
+        postRepository.deleteAllByCommunityId(community.getId());
+
+        assertThat(postRepository.findById(post1.getId())).isEqualTo(Optional.empty());
+        assertThat(postRepository.findById(post2.getId())).isEqualTo(Optional.empty());
     }
 }

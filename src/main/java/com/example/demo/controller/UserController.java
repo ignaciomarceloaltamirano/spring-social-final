@@ -71,7 +71,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getUser(username));
     }
 
-    @Operation(summary = "Update a user information")
+    @Operation(summary = "Update a user's information")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -83,13 +83,13 @@ public class UserController {
     })
     @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UpdateUserResponseDto> updateUser(
-            @RequestPart(value = "user", required = false) @Parameter(schema =@Schema(type = "string", format = "binary")) @Valid UpdateUserRequestDto updateUserRequestDto,
+            @RequestPart(value = "user", required = false) @Parameter(schema = @Schema(type = "string", format = "binary")) @Valid UpdateUserRequestDto updateUserRequestDto,
             @RequestPart(value = "image", required = false) MultipartFile file
     ) throws IOException {
         return ResponseEntity.ok(userService.updateUser(updateUserRequestDto, file));
     }
 
-    @Operation(summary = "Update a user password")
+    @Operation(summary = "Update a user's password")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",

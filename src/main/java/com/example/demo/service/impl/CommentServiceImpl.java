@@ -8,6 +8,7 @@ import com.example.demo.entity.Comment;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.exception.UnauthorizedUserException;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.PostRepository;
 import com.example.demo.service.ICommentService;
@@ -33,7 +34,6 @@ public class CommentServiceImpl implements ICommentService {
     public List<CommentResponseDto> getPostComments(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
-        Sort s = Sort.by("id").descending();
 
         List<Comment> comments = commentRepository.findAllByPost(post);
 
@@ -63,8 +63,14 @@ public class CommentServiceImpl implements ICommentService {
 
     @Transactional
     public CommentResponseDto updateComment(Long commentId, UpdateCommentRequestDto updateCommentRequestDto) {
+        User user = utilService.getCurrentUser();
+
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+
+        if (user != comment.getAuthor()) {
+            throw new UnauthorizedUserException("Not authorized.");
+        }
 
         if (!Objects.equals(comment.getText(), updateCommentRequestDto.getText()) &&
                 !updateCommentRequestDto.getText().isEmpty()
@@ -75,8 +81,14 @@ public class CommentServiceImpl implements ICommentService {
     }
 
     public MessageDto deleteComment(Long commentId) {
-        commentRepository.findById(commentId)
+        Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+
+        User user = utilService.getCurrentUser();
+        if (user != comment.getAuthor()) {
+            throw new UnauthorizedUserException("Not authorized.");
+        }
+
         commentRepository.deleteById(commentId);
         return new MessageDto("Comment deleted");
     }
