@@ -207,7 +207,7 @@ public class UserServiceTests {
         mockUser.setUsername("oldUsername");
 
         given(utilService.getCurrentUser()).willReturn(mockUser);
-        given(fileUploadService.uploadFile(imageFile)).willReturn("newImageUrl");
+        given(fileUploadService.uploadUserImageFile(imageFile)).willReturn("newImageUrl");
 
         UpdateUserResponseDto result = userService.updateUser(requestDto, imageFile);
 

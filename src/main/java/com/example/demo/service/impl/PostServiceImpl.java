@@ -224,9 +224,10 @@ public class PostServiceImpl implements IPostService {
         }
 
         if (file != null) {
-            String imageUrl = fileUploadService.uploadFile(file);
+            String imageUrl = fileUploadService.uploadPostFile(file);
             newPost.setImageUrl(imageUrl);
         }
+
         postRepository.save(newPost);
         return modelMapper.map(newPost, PostResponseDto.class);
     }
@@ -268,7 +269,7 @@ public class PostServiceImpl implements IPostService {
         }
 
         if (file != null) {
-            String imageUrl = fileUploadService.uploadFile(file);
+            String imageUrl = fileUploadService.uploadPostFile(file);
             postToUpdate.setImageUrl(imageUrl);
         }
 

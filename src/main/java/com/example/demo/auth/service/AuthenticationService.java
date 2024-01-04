@@ -158,7 +158,7 @@ public class AuthenticationService {
                 .build();
 
         if (file != null) {
-            String imageUrl = fileUploadService.uploadFile(file);
+            String imageUrl = fileUploadService.uploadUserImageFile(file);
             user.setImageUrl(imageUrl);
         }
         return user;

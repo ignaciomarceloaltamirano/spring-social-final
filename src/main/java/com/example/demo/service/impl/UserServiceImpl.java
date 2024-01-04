@@ -72,7 +72,7 @@ public class UserServiceImpl implements IUserService {
         }
 
         if (file != null) {
-            String imageUrl = fileUploadService.uploadFile(file);
+            String imageUrl = fileUploadService.uploadUserImageFile(file);
             user.setImageUrl(imageUrl);
         }
 
