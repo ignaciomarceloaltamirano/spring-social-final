@@ -267,7 +267,7 @@ public class PostServiceTests {
 
         given(communityRepository.findById(anyLong())).willReturn(Optional.of(new Community()));
 
-        given(fileUploadService.uploadFile(file)).willReturn("testImageUrl");
+        given(fileUploadService.uploadPostFile(file)).willReturn("testImageUrl");
 
         given(postRepository.save(any(Post.class))).willReturn(new Post());
 
@@ -313,7 +313,7 @@ public class PostServiceTests {
 
         given(communityRepository.findById(anyLong())).willReturn(Optional.of(new Community()));
 
-        given(fileUploadService.uploadFile(file)).willReturn("testImageUrl");
+        given(fileUploadService.uploadPostFile(file)).willReturn("testImageUrl");
 
         given(postRepository.save(any(Post.class))).willReturn(new Post());
 
@@ -344,7 +344,7 @@ public class PostServiceTests {
             }
         }
 
-        given(fileUploadService.uploadFile(file)).willReturn("testImageUrl");
+        given(fileUploadService.uploadPostFile(file)).willReturn("testImageUrl");
 
         given(postRepository.save(any(Post.class))).willReturn(new Post());
 

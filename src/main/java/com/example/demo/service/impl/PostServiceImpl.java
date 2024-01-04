@@ -224,7 +224,7 @@ public class PostServiceImpl implements IPostService {
         }
 
         if (file != null) {
-            String imageUrl = fileUploadService.uploadFile(file);
+            String imageUrl = fileUploadService.uploadPostFile(file);
             newPost.setImageUrl(imageUrl);
         }
         postRepository.save(newPost);
@@ -261,7 +261,7 @@ public class PostServiceImpl implements IPostService {
         }
 
         if (file != null) {
-            String imageUrl = fileUploadService.uploadFile(file);
+            String imageUrl = fileUploadService.uploadPostFile(file);
             postToUpdate.setImageUrl(imageUrl);
         }
 

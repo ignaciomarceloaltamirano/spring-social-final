@@ -8,22 +8,24 @@ import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.auth.dto.response.TokenRefreshResponseDto;
 import com.example.demo.entity.RefreshToken;
 import com.example.demo.entity.Role;
+import com.example.demo.entity.Token;
 import com.example.demo.entity.User;
 import com.example.demo.enumeration.ERole;
 import com.example.demo.exception.TokenRefreshException;
 import com.example.demo.exception.UserAlreadyExistsException;
 import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.TokenRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.IFileUploadService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,75 +42,98 @@ public class AuthenticationService {
     private final RoleRepository roleRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final RefreshTokenService refreshTokenService;
+    private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final IFileUploadService fileUploadService;
 
     public MessageDto register(UserRegisterRequestDto userRegisterRequestDto, MultipartFile file) throws IOException {
         validateUser(userRegisterRequestDto);
-        User user = createUser(userRegisterRequestDto, file);
+        var user = createUser(userRegisterRequestDto, file);
         Set<Role> roles = assignUserRoles(user);
         user.setRoles(roles);
         userRepository.save(user);
         return new MessageDto("Successfully registered!");
     }
 
-    public LoginResponseDto login(UserLoginRequestDto userLoginRequestDto) {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
+    public LoginResponseDto login(UserLoginRequestDto request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        userLoginRequestDto.getUsername(),
-                        userLoginRequestDto.getPassword()
+                        request.getEmail(),
+                        request.getPassword()
                 )
         );
-        context.setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        String jwtToken = jwtService.generateJwtToken(userDetails);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow();
 
-        List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+        var jwt = jwtService.generateToken(userDetails);
+        var refreshToken = jwtService.generateRefreshToken(userDetails);
+        revokeAllUserTokens(user);
+        saveUserToken(user, jwt);
 
-        User user = userRepository.findById(userDetails.getId()).get();
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).collect(Collectors.toList());
 
         return LoginResponseDto.builder()
-                .id(userDetails.getId())
-                .email(userDetails.getEmail())
+                .id(user.getId())
+                .email(user.getEmail())
+                .username(user.getUsername())
                 .roles(roles)
-                .username(userDetails.getUsername())
                 .imageUrl(user.getImageUrl())
-                .refreshToken(refreshToken.getToken())
-                .accessToken(jwtToken)
+                .accessToken(jwt)
+                .refreshToken(refreshToken)
                 .build();
     }
 
-    public ResponseEntity<MessageDto> logout() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        System.out.println("PRINCIPAL FROM LOGOUT: " + principal.toString());
-        if (!Objects.equals(principal.toString(), "anonymousUser")) {
-            Long userId = ((UserDetailsImpl) principal).getId();
-            refreshTokenService.deleteByUser(userId);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                    .body(new MessageDto("You've been logged out"));
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new MessageDto("Log out failed"));
+    private void revokeAllUserTokens(User user) {
+        var validUserTokens = tokenRepository.findAllValidTokensByUser(user.getId());
+        if (validUserTokens.isEmpty())
+            return;
+        validUserTokens.forEach(token -> {
+            token.setExpired(true);
+            token.setRevoked(true);
+        });
+        tokenRepository.saveAll(validUserTokens);
     }
 
-    public ResponseEntity<TokenRefreshResponseDto> refreshToken(RefreshTokenRequestDto request) {
-        String requestRefreshToken = request.getRefreshToken();
-        return refreshTokenService.findByToken(requestRefreshToken)
-                .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .map(user -> {
-//                    String token = jwtService.generateJwtFromUsername(user.getUsername());
-                    String token = jwtService.generateJwtFromUserId(user.getId());
-                    return ResponseEntity.ok(TokenRefreshResponseDto.builder()
-                            .accessToken(token).refreshToken(requestRefreshToken).build());
-                })
-                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
-                        "Refresh token is not in database. Please make a new log in."));
+    private void saveUserToken(User user, String jwtToken) {
+        var token = Token.builder()
+                .user(user)
+                .token(jwtToken)
+                .expired(false)
+                .revoked(false)
+                .build();
+        tokenRepository.save(token);
     }
+
+    public TokenRefreshResponseDto refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String refreshToken;
+        final String userEmail;
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+
+        refreshToken = authHeader.substring(7);
+        userEmail = jwtService.extractUsername(refreshToken);
+
+        if (userEmail != null) {
+            var user = userRepository.findByEmail(userEmail).orElseThrow();
+            UserDetails userDetails = UserDetailsImpl.build(user);
+            if (jwtService.isTokenValid(refreshToken, userDetails)) {
+                var accessToken = jwtService.generateToken(userDetails);
+                revokeAllUserTokens(user);
+                saveUserToken(user, accessToken);
+                System.out.println("Token refreshed");
+                return TokenRefreshResponseDto.builder()
+                        .accessToken(accessToken)
+                        .refreshToken(refreshToken)
+                        .build();
+            }
+        }
+        throw new TokenRefreshException(refreshToken, "Refresh token is not in database");
+    }
+
 
     private Set<Role> assignUserRoles(User user) {
         Set<Role> roles = new HashSet<>();
@@ -128,7 +153,6 @@ public class AuthenticationService {
     }
 
     private User createUser(UserRegisterRequestDto userRegisterRequestDto, MultipartFile file) throws IOException {
-
         User user = User.builder()
                 .username(userRegisterRequestDto.getUsername())
                 .email(userRegisterRequestDto.getEmail())
@@ -136,7 +160,7 @@ public class AuthenticationService {
                 .build();
 
         if (file != null) {
-            String imageUrl = fileUploadService.uploadFile(file);
+            String imageUrl = fileUploadService.uploadUserImageFile(file);
             user.setImageUrl(imageUrl);
         }
         return user;
@@ -151,5 +175,4 @@ public class AuthenticationService {
             throw new UserAlreadyExistsException("Email is already in use.");
         }
     }
-
 }
