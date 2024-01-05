@@ -95,6 +95,7 @@ public class AuthenticationController {
             HttpServletRequest request, HttpServletResponse response
     ) throws IOException {
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
+
         if (probe.isConsumed()) {
             return ResponseEntity.ok()
                     .header("X-Rate-Limit-Remaining", Long.toString(probe.getRemainingTokens()))
