@@ -5,6 +5,8 @@ import com.example.demo.auth.service.UserDetailsServiceImpl;
 import com.example.demo.dto.response.TagResponseDto;
 import com.example.demo.entity.Tag;
 import com.example.demo.repository.TagRepository;
+import com.example.demo.repository.TokenRepository;
+import com.example.demo.service.ITagService;
 import com.example.demo.service.IUtilService;
 import com.example.demo.service.impl.TagServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,11 +35,13 @@ public class TagControllerTests {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private TagServiceImpl tagService;
+    private ITagService tagService;
     @MockBean
     private TagRepository tagRepository;
     @MockBean
     private JwtService jwtService;
+    @MockBean
+    private TokenRepository tokenRepository;
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
 

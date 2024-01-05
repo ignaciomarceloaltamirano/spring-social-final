@@ -6,6 +6,8 @@ import com.example.demo.dto.response.CommunityResponseDto;
 import com.example.demo.dto.response.PageDto;
 import com.example.demo.dto.response.PostResponseDto;
 import com.example.demo.repository.CommunityRepository;
+import com.example.demo.repository.TokenRepository;
+import com.example.demo.service.ISearchService;
 import com.example.demo.service.IUtilService;
 import com.example.demo.service.impl.SearchServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,11 +40,13 @@ public class SearchControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
     @MockBean
-    private SearchServiceImpl searchService;
+    private ISearchService searchService;
     @MockBean
     private CommunityRepository communityRepository;
     @MockBean
     private IUtilService utilService;
+    @MockBean
+    private TokenRepository tokenRepository;
     @MockBean
     private ModelMapper modelMapper;
     @MockBean

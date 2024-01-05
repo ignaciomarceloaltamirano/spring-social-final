@@ -9,8 +9,10 @@ import com.example.demo.dto.response.CommentVoteResponseDto;
 import com.example.demo.dto.response.VoteResponseDto;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.PostRepository;
+import com.example.demo.repository.TokenRepository;
 import com.example.demo.repository.VoteRepository;
 import com.example.demo.service.IUtilService;
+import com.example.demo.service.IVoteService;
 import com.example.demo.service.impl.VoteServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -46,9 +48,11 @@ public class VoteControllerTests {
     @MockBean
     private IUtilService utilService;
     @MockBean
+    private TokenRepository tokenRepository;
+    @MockBean
     private ModelMapper modelMapper;
     @MockBean
-    private VoteServiceImpl voteService;
+    private IVoteService voteService;
     @MockBean
     private JwtService jwtService;
     @MockBean

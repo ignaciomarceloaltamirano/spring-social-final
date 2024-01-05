@@ -38,6 +38,7 @@ public class SubscriptionServiceTests {
     private CommunityRepository communityRepository;
     @Spy
     private ModelMapper modelMapper;
+
     @InjectMocks
     private SubscriptionServiceImpl subscriptionService;
 

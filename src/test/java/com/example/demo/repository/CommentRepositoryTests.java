@@ -9,10 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,7 +56,8 @@ public class CommentRepositoryTests {
                 .text("Hello")
                 .build();
         commentRepository.save(newComment);
-        Comment retrievedComment = commentRepository.findById(newComment.getId()).get();
+
+        Comment retrievedComment = commentRepository.findById(newComment.getId()).orElseThrow();
 
         assertThat(retrievedComment).isNotNull();
         assertThat(retrievedComment.getId()).isGreaterThan(0);
@@ -75,20 +74,17 @@ public class CommentRepositoryTests {
                 .build();
         commentRepository.save(comment2);
 
-        PageRequest pageRequest = PageRequest.of(0, 2, Sort.by("id").ascending());
-        Page<Comment> commentsPage = commentRepository.findAllByPost(post, pageRequest);
+        List<Comment> comments = commentRepository.findAllByPost(post);
 
-        assertThat(commentsPage).isNotNull();
-        assertThat(commentsPage.getContent()).isNotNull();
-        assertThat(commentsPage.getContent().size()).isEqualTo(2);
-        assertThat(commentsPage.getContent().get(0).getText()).isEqualTo("Comment 1");
-        assertThat(commentsPage.getContent().get(1).getText()).isEqualTo("Comment 2");
-        assertThat(commentsPage.getTotalPages()).isEqualTo(1);
+        assertThat(comments).isNotNull();
+        assertThat(comments.get(0).getText()).isEqualTo("Comment 1");
+        assertThat(comments.get(1).getText()).isEqualTo("Comment 2");
+        assertThat(comments.size()).isEqualTo(2);
     }
 
     @Test
     void testFindById_Success() {
-        Comment retrievedComment = commentRepository.findById(comment.getId()).get();
+        Comment retrievedComment = commentRepository.findById(comment.getId()).orElseThrow();
 
         assertThat(retrievedComment).isNotNull();
         assertThat(retrievedComment.getText()).isEqualTo("Comment 1");

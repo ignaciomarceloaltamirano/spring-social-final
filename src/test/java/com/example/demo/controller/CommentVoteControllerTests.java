@@ -8,6 +8,7 @@ import com.example.demo.dto.response.CommentVoteResponseDto;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.CommentVoteRepository;
+import com.example.demo.repository.TokenRepository;
 import com.example.demo.service.IUtilService;
 import com.example.demo.service.impl.CommentVoteServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +43,8 @@ public class CommentVoteControllerTests {
     private CommentVoteServiceImpl commentVoteService;
     @MockBean
     private IUtilService utilService;
+    @MockBean
+    private TokenRepository tokenRepository;
     @MockBean
     private CommentRepository commentRepository;
     @MockBean

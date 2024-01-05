@@ -7,6 +7,8 @@ import com.example.demo.dto.response.SubscriptionResponseDto;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.CommunityRepository;
 import com.example.demo.repository.SubscriptionRepository;
+import com.example.demo.repository.TokenRepository;
+import com.example.demo.service.ISubscriptionService;
 import com.example.demo.service.IUtilService;
 import com.example.demo.service.impl.SubscriptionServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,13 +37,15 @@ public class SubscriptionControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
     @MockBean
-    private SubscriptionServiceImpl subscriptionService;
+    private ISubscriptionService subscriptionService;
     @MockBean
     private CommunityRepository communityRepository;
     @MockBean
     private SubscriptionRepository subscriptionRepository;
     @MockBean
     private IUtilService utilService;
+    @MockBean
+    private TokenRepository tokenRepository;
     @MockBean
     private ModelMapper modelMapper;
     @MockBean
@@ -98,7 +102,7 @@ public class SubscriptionControllerTests {
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.communityName").value("test"));
     }
 
@@ -125,7 +129,7 @@ public class SubscriptionControllerTests {
                 .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
+                .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.message").value("Unsubscribed from community."));
     }
 

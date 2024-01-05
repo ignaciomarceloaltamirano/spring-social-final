@@ -2,11 +2,11 @@ package com.example.demo.service;
 
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.dto.request.PostRequestDto;
-import com.example.demo.dto.response.DeletePostResponseDto;
 import com.example.demo.dto.response.PageDto;
 import com.example.demo.dto.response.PostResponseDto;
 import com.example.demo.entity.*;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.exception.UnauthorizedUserException;
 import com.example.demo.repository.*;
 import com.example.demo.service.impl.PostServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,6 +74,7 @@ public class PostServiceTests {
 
         assertThat(result).isNotNull();
         assertThat(result).isInstanceOf(PostResponseDto.class);
+        verify(postRepository, times(1)).findById(anyLong());
     }
 
     @Test
@@ -87,101 +88,164 @@ public class PostServiceTests {
     }
 
     @Test
-    void testGetAllPosts() {
-        Page<Post> page = new PageImpl<>(Collections.singletonList(new Post()));
-        given(postRepository.findAll(any(PageRequest.class))).willReturn(page);
-
-        PageDto<PostResponseDto> result = postService.getPosts(1);
-
-        assertThat(result).isNotNull();
-        assertThat(result).isInstanceOf(PageDto.class);
-        verify(postRepository, times(1)).findAll(any(PageRequest.class));
-    }
-
-    @Test
     void testGetPostsByTag() {
-        Page<Post> page = new PageImpl<>(Collections.singletonList(new Post()));
+        Page<Post> page = new PageImpl<>(List.of(new Post()));
         given(postRepository.findAllByTagsName(eq("test"), any(PageRequest.class))).willReturn(page);
 
         PageDto<PostResponseDto> result = postService.getPostsByTag("test", 1);
 
-        assertThat(result).isNotNull();
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getCurrentPage());
+        assertEquals(1, result.getContent().size());
         assertThat(result).isInstanceOf(PageDto.class);
+
         verify(postRepository, times(1)).findAllByTagsName(eq("test"), any(PageRequest.class));
     }
 
-//    @Test
-//    void testGetUserUpVotedPosts() {
-//        given(utilService.getCurrentUser()).willReturn(user);
-//        Page<Post> page = new PageImpl<>(Collections.singletonList(new Post()));
-//        given(voteRepository.findUserUpVotedPosts(anyLong(), any(PageRequest.class))).willReturn(page);
-//
-//        PageDto<PostResponseDto> result = postService.getUserUpVotedPosts(userId, 1);
-//
-//        assertThat(result).isNotNull();
-//        assertThat(result).isInstanceOf(PageDto.class);
-//        verify(voteRepository, times(1)).findUserUpVotedPosts(anyLong(), any(PageRequest.class));
-//    }
+    @Test
+    void testGetUserUpVotedPosts() {
+        given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+        Page<Post> page = new PageImpl<>(List.of(new Post()));
+        given(voteRepository.findUserUpVotedPosts(anyLong(), any(PageRequest.class))).willReturn(page);
 
-//    @Test
-//    void testGetUserDownVotedPosts() {
-//        given(utilService.getCurrentUser()).willReturn(user);
-//        Page<Post> page = new PageImpl<>(Collections.singletonList(new Post()));
-//        given(voteRepository.findUserDownVotedPosts(anyLong(), any(PageRequest.class))).willReturn(page);
-//
-//        PageDto<PostResponseDto> result = postService.getUserDownVotedPosts(userId, 1);
-//
-//        assertThat(result).isNotNull();
-//        assertThat(result).isInstanceOf(PageDto.class);
-//        verify(voteRepository, times(1)).findUserDownVotedPosts(anyLong(), any(PageRequest.class));
-//    }
+        PageDto<PostResponseDto> result = postService.getUserUpVotedPosts(user.getId(), 1);
+
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getCurrentPage());
+        assertEquals(1, result.getContent().size());
+        assertThat(result).isInstanceOf(PageDto.class);
+        verify(voteRepository, times(1)).findUserUpVotedPosts(anyLong(), any(PageRequest.class));
+    }
+
+    @Test
+    void testGetUserUpVotedPosts_WhenUserNotFound_ThrowsResourceNotFoundException() {
+        given(userRepository.findById(anyLong())).willReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> postService.getUserUpVotedPosts(1L, 1));
+
+        verify(voteRepository, never()).findUserUpVotedPosts(anyLong(), any(PageRequest.class));
+        assertThat(exception.getMessage()).isEqualTo("User not found");
+    }
+
+    @Test
+    void testGetUserDownVotedPosts() {
+        given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+        Page<Post> page = new PageImpl<>(List.of(new Post()));
+        given(voteRepository.findUserDownVotedPosts(anyLong(), any(PageRequest.class))).willReturn(page);
+
+        PageDto<PostResponseDto> result = postService.getUserDownVotedPosts(user.getId(), 1);
+
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getCurrentPage());
+        assertEquals(1, result.getContent().size());
+        assertThat(result).isInstanceOf(PageDto.class);
+        verify(voteRepository, times(1)).findUserDownVotedPosts(anyLong(), any(PageRequest.class));
+    }
+
+    @Test
+    void testGetUserDownVotedPosts_WhenUserNotFound_ThrowsResourceNotFoundException() {
+        given(userRepository.findById(anyLong())).willReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> postService.getUserDownVotedPosts(1L, 1));
+
+        verify(voteRepository, never()).findUserDownVotedPosts(anyLong(), any(PageRequest.class));
+        assertThat(exception.getMessage()).isEqualTo("User not found");
+    }
 
     @Test
     void testGetUserSubscribedCommunitiesPosts() {
         given(utilService.getCurrentUser()).willReturn(user);
-        Page<Post> page = new PageImpl<>(Collections.singletonList(new Post()));
+        Page<Post> page = new PageImpl<>(List.of(new Post()));
         given(postRepository.findPostsInUserSubscribedCommunities(anyLong(), any(PageRequest.class))).willReturn(page);
 
         PageDto<PostResponseDto> result = postService.getUserSubscribedCommunitiesPosts(1);
 
-        assertThat(result).isNotNull();
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getCurrentPage());
+        assertEquals(1, result.getContent().size());
         assertThat(result).isInstanceOf(PageDto.class);
         verify(postRepository, times(1)).findPostsInUserSubscribedCommunities(anyLong(), any(PageRequest.class));
     }
 
     @Test
-    void testGetPostsByCommunity() {
-        Page<Post> page = new PageImpl<>(Collections.singletonList(new Post()));
+    void testGetPostsByCommunity_Success() {
+        Community community = new Community();
+        community.setId(1L);
+
+        Page<Post> page = new PageImpl<>(List.of(new Post()));
+
+        given(communityRepository.findById(1L)).willReturn(Optional.of(community));
         given(postRepository.findAllByCommunityId(anyLong(), any(PageRequest.class))).willReturn(page);
 
         PageDto<PostResponseDto> result = postService.getPostsByCommunity(1L, 1);
 
-        assertThat(result).isNotNull();
-        assertThat(result).isInstanceOf(PageDto.class);
+        assertNotNull(result);
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getCurrentPage());
+        assertEquals(1, result.getContent().size());
+
+        verify(communityRepository, times(1)).findById(1L);
         verify(postRepository, times(1)).findAllByCommunityId(anyLong(), any(PageRequest.class));
     }
 
     @Test
+    void testGetPostsByCommunity_WhenCommunityNotFound_ThrowsResourceNotFoundException() {
+        given(communityRepository.findById(anyLong())).willReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> postService.getPostsByCommunity(1L, 1));
+
+        assertThat(exception.getMessage()).isEqualTo("Community not found.");
+        verify(postRepository, never()).findAllByCommunityId(anyLong(), any(PageRequest.class));
+    }
+
+    @Test
     void testGetUserPosts() {
-        Page<Post> page = new PageImpl<>(Collections.singletonList(new Post()));
+        given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+
+        Page<Post> page = new PageImpl<>(List.of(new Post()));
         given(postRepository.findAllByAuthorId(anyLong(), any(PageRequest.class))).willReturn(page);
 
-        PageDto<PostResponseDto> result = postService.getUserPosts(1L, 1);
+        PageDto<PostResponseDto> result = postService.getUserPosts(anyLong(), 1);
 
-        assertThat(result).isNotNull();
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getCurrentPage());
+        assertEquals(1, result.getContent().size());
         assertThat(result).isInstanceOf(PageDto.class);
         verify(postRepository, times(1)).findAllByAuthorId(anyLong(), any(PageRequest.class));
     }
 
     @Test
+    void testGetUserPosts_WhenUserNotFound_ThrowsResourceNotFoundException() {
+        given(userRepository.findById(anyLong())).willReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> postService.getUserPosts(1L, 1));
+
+        assertThat(exception.getMessage()).isEqualTo("User not found.");
+        verify(postRepository, never()).findAllByAuthorId(anyLong(), any(PageRequest.class));
+    }
+
+    @Test
     void testGetUserSavedPosts() {
         given(utilService.getCurrentUser()).willReturn(user);
-        Page<Post> page = new PageImpl<>(Collections.singletonList(new Post()));
+        Page<Post> page = new PageImpl<>(List.of(new Post()));
         given(userRepository.findSavedPostsById(anyLong(), any(PageRequest.class))).willReturn(page);
 
         PageDto<PostResponseDto> result = postService.getUserSavedPosts(1);
 
-        assertThat(result).isNotNull();
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(1, result.getCurrentPage());
+        assertEquals(1, result.getContent().size());
         assertThat(result).isInstanceOf(PageDto.class);
         verify(userRepository, times(1)).findSavedPostsById(anyLong(), any(PageRequest.class));
     }
@@ -189,23 +253,31 @@ public class PostServiceTests {
     @Test
     void testIsPostSaved_WhenItIsSaved_ReturnsTrue() {
         given(utilService.getCurrentUser()).willReturn(user);
-        given(userRepository.isPostSavedByUser(anyLong(), anyLong())).willReturn(true);
+
+        Post post = new Post();
+        given(postRepository.findById(anyLong())).willReturn(Optional.of(post));
+
+        given(userRepository.isPostSavedByUser(user.getId(), post.getId())).willReturn(true);
 
         boolean result = postService.isPostSaved(1L);
 
         assertTrue(result);
-        verify(userRepository, times(1)).isPostSavedByUser(anyLong(), anyLong());
+        verify(postRepository, times(1)).findById(anyLong());
     }
 
     @Test
     void testIsPostSaved_WhenItIsNotSaved_ReturnsFalse() {
         given(utilService.getCurrentUser()).willReturn(user);
-        given(userRepository.isPostSavedByUser(anyLong(), anyLong())).willReturn(false);
+
+        Post post = new Post();
+        given(postRepository.findById(anyLong())).willReturn(Optional.of(post));
+
+        given(userRepository.isPostSavedByUser(user.getId(), post.getId())).willReturn(false);
 
         boolean result = postService.isPostSaved(1L);
 
         assertFalse(result);
-        verify(userRepository, times(1)).isPostSavedByUser(anyLong(), anyLong());
+        verify(postRepository, times(1)).findById(anyLong());
     }
 
     @Test
@@ -224,11 +296,12 @@ public class PostServiceTests {
         given(utilService.getCurrentUser()).willReturn(user);
         given(postRepository.findById(anyLong())).willReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () ->
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
                 postService.savePost(1L));
 
+        assertThat(exception.getMessage()).isEqualTo("Post not found.");
         verify(postRepository, times(1)).findById(anyLong());
-        verify(userRepository, never()).save(any());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
@@ -247,11 +320,12 @@ public class PostServiceTests {
         given(utilService.getCurrentUser()).willReturn(user);
         given(postRepository.findById(anyLong())).willReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () ->
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
                 postService.unSavePost(1L));
 
+        assertThat(exception.getMessage()).isEqualTo("Post not found.");
         verify(postRepository, times(1)).findById(anyLong());
-        verify(userRepository, never()).save(any());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
@@ -406,9 +480,10 @@ public class PostServiceTests {
     void testCreatePost_WhenCommunityNotFound_ThrowsResourceNotFoundException() {
         given(communityRepository.findById(anyLong())).willReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () ->
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
                 postService.createPost(new PostRequestDto(), anyLong(), null));
 
+        assertThat(exception.getMessage()).isEqualTo("Community not found.");
         verify(postRepository, never()).save(any(Post.class));
     }
 
@@ -416,7 +491,7 @@ public class PostServiceTests {
     void testDeletePost_Success() {
         given(postRepository.findById(anyLong())).willReturn(Optional.of(new Post()));
 
-        DeletePostResponseDto result = postService.deletePost(anyLong());
+        MessageDto result = postService.deletePost(1L);
 
         assertThat(result).isInstanceOf(MessageDto.class);
         verify(postRepository, times(1)).findById(anyLong());
@@ -426,9 +501,28 @@ public class PostServiceTests {
     void testDeletePost_WhenPostNotFound_ThrowsResourceNotFoundException() {
         given(postRepository.findById(anyLong())).willReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class,()->
-                postService.deletePost(anyLong()));
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+                postService.deletePost(1L));
 
+        assertThat(exception.getMessage()).isEqualTo("Post not found.");
+        verify(postRepository, never()).delete(new Post());
+    }
+
+    @Test
+    void testDeletePost_WhenUserIsNotAuthorized_ThrowsUnauthorizedUserException() {
+        User unauthorizedUser = User.builder()
+                .username("unauthorized")
+                .email("test@unauthorized.com")
+                .password("test")
+                .build();
+
+        given(utilService.getCurrentUser()).willReturn(unauthorizedUser);
+        given(postRepository.findById(anyLong())).willReturn(Optional.of(new Post()));
+
+        UnauthorizedUserException exception = assertThrows(UnauthorizedUserException.class,
+                () -> postService.deletePost(1L));
+
+        assertThat(exception.getMessage()).contains("Not authorized.");
         verify(postRepository, never()).delete(new Post());
     }
 }

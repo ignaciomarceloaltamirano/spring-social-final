@@ -76,7 +76,7 @@ public class CommentVoteServiceTests {
     }
 
     @Test
-    void testGetCurrentVote_Success() {
+    void testGetCurrentCommentVote_Success() {
         given(utilService.getCurrentUser()).willReturn(user);
         given(commentRepository.findById(anyLong())).willReturn(Optional.of(comment));
         given(commentVoteRepository.findByUserIdAndCommentId(anyLong(), anyLong()))
@@ -90,7 +90,7 @@ public class CommentVoteServiceTests {
     }
 
     @Test
-    void testGetCurrentVote_WhenCommentNotFound_ReturnsNull() {
+    void testGetCurrentCommentVote_WhenCommentNotFound_ReturnsNull() {
         given(commentRepository.findById(anyLong())).willReturn(Optional.empty());
 
         CommentVoteResponseDto result = commentVoteService.getCurrentVote(-1L);
@@ -100,7 +100,7 @@ public class CommentVoteServiceTests {
     }
 
     @Test
-    void testGetCurrentVote_WhenCommentVoteNotFound_ReturnsNull() {
+    void testGetCurrentCommentVote_WhenCommentVoteNotFound_ReturnsNull() {
         given(utilService.getCurrentUser()).willReturn(user);
         given(commentRepository.findById(anyLong())).willReturn(Optional.of(comment));
         given(commentVoteRepository.findByUserIdAndCommentId(anyLong(), anyLong())).willReturn(Optional.empty());

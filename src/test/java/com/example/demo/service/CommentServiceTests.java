@@ -9,6 +9,7 @@ import com.example.demo.entity.Comment;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.exception.UnauthorizedUserException;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.PostRepository;
 import com.example.demo.service.impl.CommentServiceImpl;
@@ -27,6 +28,7 @@ import org.springframework.data.domain.PageRequest;
 
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +44,7 @@ public class CommentServiceTests {
     @Mock
     private PostRepository postRepository;
     @Mock
-    private UtilServiceImpl utilService;
+    private IUtilService utilService;
     @Spy
     private ModelMapper modelMapper;
 
@@ -73,29 +75,30 @@ public class CommentServiceTests {
         ;
     }
 
-//    @Test
-//    void testGetPostComments_Success() {
-//        given(postRepository.findById(anyLong())).willReturn(Optional.of(post));
-//
-//        Page<Comment> pageRequest = new PageImpl<>(Collections.singletonList(comment));
-//        given(commentRepository.findAllByPost(eq(post), any(PageRequest.class))).willReturn(pageRequest);
-//
-//        PageDto<CommentResponseDto> result = commentService.getPostComments(anyLong(), 1);
-//
-//        assertNotNull(result);
-//        assertThat(result).isInstanceOf(PageDto.class);
-//        verify(commentRepository, times(1)).findAllByPost(any(Post.class), any(PageRequest.class));
-//    }
+    @Test
+    void testGetPostComments_Success() {
+        given(postRepository.findById(anyLong())).willReturn(Optional.of(post));
 
-//    @Test
-//    void testGetPostComments_WhenPostNotFound_ThrowsResourceNotFoundException() {
-//        given(postRepository.findById(anyLong())).willReturn(Optional.empty());
-//
-//        assertThrows(ResourceNotFoundException.class, () ->
-//                commentService.getPostComments(anyLong(), 1));
-//
-//        verify(commentRepository, never()).findAllByPost(any(), any());
-//    }
+        given(commentRepository.findAllByPost(eq(post))).willReturn(List.of(comment));
+
+        List<CommentResponseDto> result = commentService.getPostComments(anyLong());
+
+        assertNotNull(result);
+        assertThat(result).isInstanceOf(List.class);
+        verify(postRepository, times(1)).findById(anyLong());
+        verify(commentRepository, times(1)).findAllByPost(any(Post.class));
+    }
+
+    @Test
+    void testGetPostComments_WhenPostNotFound_ThrowsResourceNotFoundException() {
+        given(postRepository.findById(anyLong())).willReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                commentService.getPostComments(anyLong()));
+
+        verify(postRepository, times(1)).findById(anyLong());
+        verify(commentRepository, never()).findAllByPost(any());
+    }
 
     @Test
     void testCreateComment_Success() {
@@ -106,6 +109,8 @@ public class CommentServiceTests {
 
         CommentResponseDto savedComment = commentService.createComment(1L, commentRequestDto);
         assertNotNull(savedComment);
+
+        verify(postRepository, times(1)).findById(anyLong());
         verify(commentRepository, times(1)).save(any(Comment.class));
     }
 
@@ -122,6 +127,8 @@ public class CommentServiceTests {
 
         assertNotNull(savedComment);
         assertEquals(1L,savedComment.getReplyToId());
+        verify(postRepository, times(1)).findById(anyLong());
+        verify(commentRepository, times(1)).findById(anyLong());
         verify(commentRepository, times(1)).save(any(Comment.class));
     }
 
@@ -151,6 +158,7 @@ public class CommentServiceTests {
         assertThrows(ResourceNotFoundException.class, () ->
                 commentService.createComment(1L, commentRequestDto));
 
+        verify(postRepository, times(1)).findById(anyLong());
         verify(commentRepository, times(1)).findById(anyLong());
         verify(commentRepository, never()).save(any(Comment.class));
     }
@@ -167,6 +175,7 @@ public class CommentServiceTests {
 
         assertEquals(comment.getText(), result.getText());
         assertNotNull(result);
+        verify(commentRepository, times(1)).findById(anyLong());
         assertThat(result.getText()).isEqualTo(updateCommentRequestDto.getText());
     }
 
@@ -185,7 +194,25 @@ public class CommentServiceTests {
     }
 
     @Test
+    void testUpdateComment_WhenUserIsNotEqualToCreator_ThrowsUnauthorizedUserException() {
+       User unauthorizedUser = User.builder()
+                .username("unauthorized")
+                .email("test@unauthorized.com")
+                .password("test")
+                .build();
+
+        given(utilService.getCurrentUser()).willReturn(unauthorizedUser);
+        given(commentRepository.findById(anyLong())).willReturn(Optional.of(comment));
+
+        assertThrows(UnauthorizedUserException.class, () ->
+                commentService.updateComment(1L,new UpdateCommentRequestDto()));
+
+        verify(commentRepository, times(1)).findById(anyLong());
+    }
+
+    @Test
     void testDeleteComment_Success() {
+        given(utilService.getCurrentUser()).willReturn(author);
         given(commentRepository.findById(anyLong())).willReturn(Optional.of(comment));
 
         MessageDto result = commentService.deleteComment(anyLong());
@@ -203,5 +230,22 @@ public class CommentServiceTests {
                 commentService.deleteComment(anyLong()));
 
         verify(commentRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void testDeleteComment_WhenUserIsNotEqualToAuthor_ThrowsUnauthorizedUserException() {
+        User unauthorizedUser = User.builder()
+                .username("unauthorized")
+                .email("test@unauthorized.com")
+                .password("test")
+                .build();
+
+        given(utilService.getCurrentUser()).willReturn(unauthorizedUser);
+        given(commentRepository.findById(anyLong())).willReturn(Optional.of(comment));
+
+        assertThrows(UnauthorizedUserException.class, () ->
+                commentService.deleteComment(anyLong()));
+
+        verify(commentRepository, times(1)).findById(anyLong());
     }
 }

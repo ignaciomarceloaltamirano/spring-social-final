@@ -3,6 +3,7 @@ package com.example.demo.repository;
 import com.example.demo.entity.Community;
 import com.example.demo.entity.User;
 import com.example.demo.exception.ResourceNotFoundException;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,15 +53,15 @@ public class CommunityRepositoryTests {
 
     @Test
     void testFindAll() {
-        PageRequest pageRequest = PageRequest.of(0, 2, Sort.by("id").ascending());
-        Page<Community> communitiesPage = communityRepository.findAll(pageRequest);
+        List<Community> communities = communityRepository.findAll();
 
-        assertThat(communitiesPage).isNotNull();
+        assertThat(communities).isNotNull();
+        assertThat(communities.size()).isGreaterThan(0);
     }
 
     @Test
     void testFindById_Success() {
-        Community retrievedCommunity = communityRepository.findById(community1.getId()).get();
+        Community retrievedCommunity = communityRepository.findById(community1.getId()).orElseThrow();
 
         assertThat(retrievedCommunity).isNotNull();
         assertThat(retrievedCommunity.getName()).isEqualTo("Community 1");
@@ -73,13 +76,24 @@ public class CommunityRepositoryTests {
     }
 
     @Test
+    public void testFindByName() {
+        Community community = communityRepository.findByName(community1.getName()).orElseThrow();
+
+        assertThat(community).isNotNull();
+        assertThat(community.getId()).isGreaterThan(0);
+        assertThat(community.getName()).isEqualTo("Community 1");
+    }
+
+    @Test
     void testSaveCommunity() {
         Community newCommunity = Community.builder()
                 .name("New Community")
                 .creator(creator)
                 .build();
+
         communityRepository.save(newCommunity);
-        Community retrievedCommunity = communityRepository.findById(newCommunity.getId()).get();
+
+        Community retrievedCommunity = communityRepository.findById(newCommunity.getId()).orElseThrow();
 
         assertThat(retrievedCommunity).isNotNull();
         assertThat(retrievedCommunity.getId()).isGreaterThan(0);

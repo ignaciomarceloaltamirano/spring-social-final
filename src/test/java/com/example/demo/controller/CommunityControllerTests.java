@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.auth.service.JwtService;
 import com.example.demo.auth.service.UserDetailsServiceImpl;
 import com.example.demo.dto.request.CommunityRequestDto;
@@ -8,6 +9,8 @@ import com.example.demo.dto.response.PageDto;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.exception.UnauthorizedUserException;
 import com.example.demo.repository.CommunityRepository;
+import com.example.demo.repository.TokenRepository;
+import com.example.demo.service.ICommunityService;
 import com.example.demo.service.IUtilService;
 import com.example.demo.service.impl.CommunityServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,10 +26,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -39,9 +42,11 @@ public class CommunityControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
     @MockBean
-    private CommunityServiceImpl communityService;
+    private ICommunityService communityService;
     @MockBean
     private CommunityRepository communityRepository;
+    @MockBean
+    private TokenRepository tokenRepository;
     @MockBean
     private IUtilService utilService;
     @MockBean
@@ -89,7 +94,7 @@ public class CommunityControllerTests {
                 .content(objectMapper.writeValueAsString(communityRequestDto));
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.name").value(communityRequestDto.getName()));
     }
@@ -146,6 +151,30 @@ public class CommunityControllerTests {
                 .content(objectMapper.writeValueAsString(communityRequestDto));
 
         mockMvc.perform(requestBuilder)
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testDeleteCommunity_Success() throws Exception {
+        given(communityService.deleteCommunity(any()))
+                .willReturn(new MessageDto("Community deleted"));
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .delete("/communities/{communityId}", 1L, 1)
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isNoContent())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Community deleted"));
+    }
+
+    @Test
+    public void testDeleteCommunity_WhenCommunityNotFound_ThrowsResourceNotFoundException() throws Exception {
+        given(communityService.deleteCommunity(anyLong()))
+                .willThrow(new ResourceNotFoundException("Community not found"));
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/communities/{commentId}", 1L))
                 .andExpect(status().isNotFound());
     }
 }

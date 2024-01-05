@@ -7,13 +7,10 @@ import com.example.demo.auth.service.UserDetailsServiceImpl;
 import com.example.demo.dto.request.CommentRequestDto;
 import com.example.demo.dto.request.UpdateCommentRequestDto;
 import com.example.demo.dto.response.CommentResponseDto;
-import com.example.demo.dto.response.PageDto;
-
-import com.example.demo.entity.Comment;
-import com.example.demo.entity.Tag;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.PostRepository;
+import com.example.demo.repository.TokenRepository;
 import com.example.demo.service.IUtilService;
 import com.example.demo.service.impl.CommentServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +27,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -38,7 +34,7 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CommentController.class)
-@WithMockUser(username = "user", password = "test", roles = {"USER", "MOD", "ADMIN"})
+@WithMockUser(username = "user", password = "test", roles = "USER")
 @AutoConfigureMockMvc(addFilters = false)
 public class CommentControllerTests {
     @Autowired
@@ -52,6 +48,8 @@ public class CommentControllerTests {
     @MockBean
     private PostRepository postRepository;
     @MockBean
+    private TokenRepository tokenRepository;
+    @MockBean
     private JwtService jwtService;
     @MockBean
     private IUtilService utilService;
@@ -60,7 +58,7 @@ public class CommentControllerTests {
 
     @Test
     public void testGetPostComments() throws Exception {
-        given(commentService.getPostComments(anyLong())).willReturn(Collections.singletonList(new CommentResponseDto()));
+        given(commentService.getPostComments(anyLong())).willReturn(List.of(new CommentResponseDto()));
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
                 .get("/comments/post/{postId}", 1L)
@@ -83,7 +81,8 @@ public class CommentControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(commentRequestDto));
 
-        mockMvc.perform(requestBuilder).andExpect(status().isOk())
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.text").value(commentRequestDto.getText()));
     }
 
@@ -105,7 +104,7 @@ public class CommentControllerTests {
                 .content(objectMapper.writeValueAsString(commentRequestDto));
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.text").value(commentRequestDto.getText()))
                 .andExpect(jsonPath("$.replyToId").value(1L));
     }
@@ -177,7 +176,7 @@ public class CommentControllerTests {
                 .accept(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
+                .andExpect(status().isNoContent())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("Comment deleted"));
     }
