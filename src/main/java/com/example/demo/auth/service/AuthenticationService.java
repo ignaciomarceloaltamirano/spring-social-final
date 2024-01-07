@@ -5,7 +5,6 @@ import com.example.demo.auth.dto.request.UserRegisterRequestDto;
 import com.example.demo.auth.dto.response.LoginResponseDto;
 import com.example.demo.auth.dto.response.MessageDto;
 import com.example.demo.auth.dto.response.TokenRefreshResponseDto;
-import com.example.demo.entity.Token;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.Token;
 import com.example.demo.entity.User;
