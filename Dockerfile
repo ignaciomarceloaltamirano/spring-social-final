@@ -1,3 +1,4 @@
+
 FROM maven:3.8.4-openjdk-17-slim AS build
 WORKDIR /app
 COPY . .
@@ -8,3 +9,4 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar java-app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "java-app.jar"]
+
