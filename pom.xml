@@ -8,11 +8,11 @@
 		<version>3.1.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.social</groupId>
-	<artifactId>social</artifactId>
+	<groupId>com.zeddit</groupId>
+	<artifactId>zeddit</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>final</name>
-	<description>Social Final</description>
+	<description>Zeddit</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
