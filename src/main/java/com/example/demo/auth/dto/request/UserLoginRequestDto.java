@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class UserLoginRequestDto {
     @NotEmpty(message = "Email must not be empty.")
     @Email
-    @Size(min = 12, max = 80, message = "Size must be between 12 and 40 characters long.")
+    @Size(min = 12, max = 80, message = "Size must be between 12 and 80 characters long.")
     private String email;
     @NotEmpty(message = "Password must not be empty.")
     @Size(min = 3, max = 80, message = "Size must be between 3 and 80 characters long.")

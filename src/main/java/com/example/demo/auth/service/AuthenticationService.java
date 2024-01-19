@@ -63,9 +63,9 @@ public class AuthenticationService {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow();
-
         var jwt = jwtService.generateToken(userDetails);
         var refreshToken = jwtService.generateRefreshToken(userDetails);
+
         revokeAllUserTokens(user);
         saveUserToken(user, jwt);
 
@@ -123,10 +123,7 @@ public class AuthenticationService {
                 revokeAllUserTokens(user);
                 saveUserToken(user, accessToken);
                 System.out.println("Token refreshed");
-                return TokenRefreshResponseDto.builder()
-                        .accessToken(accessToken)
-                        .refreshToken(refreshToken)
-                        .build();
+                return new  TokenRefreshResponseDto(accessToken,refreshToken);
             }
         }
         throw new TokenRefreshException(refreshToken, "Refresh token is not in database");

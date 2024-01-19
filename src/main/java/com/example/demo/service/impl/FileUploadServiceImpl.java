@@ -20,14 +20,14 @@ public class FileUploadServiceImpl implements IFileUploadService {
     public String uploadPostFile(MultipartFile multipartFile) throws IOException {
         return cloudinary.uploader()
                 .upload(multipartFile.getBytes(),
-                        ObjectUtils.asMap("folder", "/social/posts"))
+                        ObjectUtils.asMap("folder", "/zeddit/posts"))
                 .get("url").toString();
     }
 
     public String uploadUserImageFile(MultipartFile multipartFile) throws IOException {
         return cloudinary.uploader()
                 .upload(multipartFile.getBytes(),
-                        ObjectUtils.asMap("folder", "/social/users"))
+                        ObjectUtils.asMap("folder", "/zeddit/users"))
                 .get("url").toString();
     }
 }
