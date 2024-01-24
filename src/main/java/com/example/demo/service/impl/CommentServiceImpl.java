@@ -38,7 +38,6 @@ public class CommentServiceImpl implements ICommentService {
         List<Comment> comments = commentRepository.findAllByPost(post);
 
         return comments.stream().map(comment -> modelMapper.map(comment, CommentResponseDto.class)).toList();
-
     }
 
     public CommentResponseDto createComment(Long postId, CommentRequestDto commentRequestDto) {
